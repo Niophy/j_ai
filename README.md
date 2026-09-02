@@ -32,10 +32,14 @@ Scenario + Student Answer + Template
 - Local-first via Ollama — privacy, zero API cost, infrastructure understanding (0006)
 
 ## Challenges
-_(fill during the build)_
+- **Missing dependency on install** — the Ollama installer failed on a missing `zstd`; diagnosed from the error output and fixed with `apt install zstd` before reinstalling (Phase 3).
+- **Lost administrative access** — Ubuntu user credentials had to be reset inside WSL before development could continue (Phase 2).
+- **Inconsistent evaluations** — the core problem: identical answers received different verdicts run to run. Solved architecturally, not with better prompts: criteria moved out of the model into versioned templates, temperature pinned to 0, output constrained to JSON.
+- **GPT provider blocked by quota** — OpenAI key validated but requests failed on insufficient quota; kept the architecture provider-ready and continued fully local and cost-free (Phase 8).
+- **Environment precedence conflict** — shell-exported variables silently overrode `.env` values; resolved by establishing a single configuration entry point through python-dotenv (Phase 8).
 
 ## What I Learned
-_(fill during the build)_
+J_AI changed how I see AI: before, a technology that generates responses; after, **one module inside a larger software architecture**. The model was never the problem — the architecture was. Reliable AI systems need validation, structured outputs, versioning, documentation, and testing around the model, and those surrounding systems often contribute more to quality than the model itself. Prompt engineering matured from "writing better instructions" into **software specification** — a formal contract between the system and the model.
 
 ## Current Status
 Working local runtime in WSL2 (`/home/j/J_AI`): Ollama + llama3 inference, provider-agnostic architecture (base provider → factory → env-selected), `.env` config layer, and an eval module with versioned templates, runner, scorers, and test cases. Build history in `docs/Project Journal - J_AI.docx` (Phases 1–8). MUV gap: CLI evaluate command, JSON validation with retry, report writer, README examples, GitHub publish — see [SPEC.md](SPEC.md).
@@ -44,4 +48,9 @@ Working local runtime in WSL2 (`/home/j/J_AI`): Ollama + llama3 inference, provi
 Multi-subject templates · evaluation history · model comparison · document analysis (see journal's Future Roadmap).
 
 ## Known Limitations
-_(fill before publishing — honesty here is a feature)_
+From the project journal — these define the next stage, not failures:
+- Not yet packaged as a clean CLI tool (the MUV closes this)
+- Validation is minimal; no formal testing dataset yet
+- No persistent evaluation history or dashboard
+- No multi-template management interface
+- No automatic comparison between model evaluations
