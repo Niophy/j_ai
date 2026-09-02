@@ -1,0 +1,105 @@
+{
+  "course": "ITE 402",
+  "version": "v1_design_eval",
+  "cases": [
+    {
+      "id": "REQ_001",
+      "type": "requirements_analysis",
+      "prompt_template": "requirements_analysis_v1",
+      "input": {
+        "scenario": "A small clinic has 1 main site and 1 remote branch. They need reliable internet access, secure patient record access, and minimal downtime. Budget is limited. They expect growth from 30 to 80 staff within 2 years."
+      },
+      "expected": {
+        "must_include": [
+          "business goals",
+          "technical goals",
+          "constraints",
+          "growth",
+          "security"
+        ],
+        "must_avoid": [
+          "inventing vendor quotes",
+          "claiming compliance certifications without evidence"
+        ],
+        "min_points": 5
+      },
+      "tags": ["chapter1", "chapter2"]
+    },
+    {
+      "id": "REQ_002",
+      "type": "requirements_analysis",
+      "prompt_template": "requirements_analysis_v1",
+      "input": {
+        "scenario": "A university building has 6 labs and 12 classrooms. Each lab has 35 PCs. WiFi must cover classrooms. Some devices are IoT sensors. The network must support online exams without drops. IT staff is small."
+      },
+      "expected": {
+        "must_include": [
+          "traffic types",
+          "availability",
+          "wireless coverage",
+          "management",
+          "segmentation"
+        ],
+        "min_points": 5
+      },
+      "tags": ["chapter1", "chapter4", "chapter9"]
+    },
+    {
+      "id": "LOG_001",
+      "type": "logical_design",
+      "prompt_template": "logical_design_v1",
+      "input": {
+        "scenario": "A mid size company has 3 departments: HR, Finance, Engineering. Engineering has heavy internal traffic and needs lab isolation. Finance needs strict access control. Provide a logical design approach."
+      },
+      "expected": {
+        "must_include": [
+          "hierarchical design",
+          "segmentation",
+          "addressing plan",
+          "routing approach",
+          "redundancy"
+        ],
+        "min_points": 5
+      },
+      "tags": ["chapter6", "chapter7"]
+    },
+    {
+      "id": "PROT_001",
+      "type": "protocol_selection",
+      "prompt_template": "protocol_selection_v1",
+      "input": {
+        "question": "Choose a routing protocol for a campus network with multiple buildings and future growth. Justify your choice briefly."
+      },
+      "expected": {
+        "must_include_any": [
+          ["OSPF", "link state", "scalable"],
+          ["EIGRP", "fast convergence", "scalable"]
+        ],
+        "must_avoid": [
+          "saying RIP is best for large scalable networks"
+        ],
+        "min_points": 3
+      },
+      "tags": ["chapter7"]
+    },
+    {
+      "id": "SEC_001",
+      "type": "security_strategy",
+      "prompt_template": "security_strategy_v1",
+      "input": {
+        "scenario": "A company allows remote work. They host internal apps and a public website. Propose security strategies for internal and perimeter security."
+      },
+      "expected": {
+        "must_include": [
+          "segmentation",
+          "least privilege",
+          "remote access protection",
+          "monitoring",
+          "public facing isolation"
+        ],
+        "min_points": 5
+      },
+      "tags": ["chapter8"]
+    }
+  ]
+}
