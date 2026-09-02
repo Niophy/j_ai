@@ -5,7 +5,7 @@
 <!-- Standard portfolio format (Journal, Decision 0078). Fill sections as the MUV gets built; keep each answer short. -->
 
 ## Purpose
-Evaluate technical answers consistently — the way an experienced examiner would — instead of generating conversational responses that grade differently every time.
+Evaluate technical answers consistently instead of generating conversational responses that grade differently every time.
 
 ## Problem Solved
 LLM evaluations are inconsistent: same answer, different verdicts. J_AI moves the evaluation criteria *outside* the model (Decision 0003): versioned templates define objectives, scoring criteria, and required output; the model interprets answers only within those boundaries.
