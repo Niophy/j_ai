@@ -49,7 +49,7 @@ Out of scope for MUV: dashboard, history DB, model comparison, multi-template UI
 
 ## Recall triggers (one line per week as you go)
 - Phases 1–8: documented in `docs/Project Journal - J_AI.docx` ✔
-- Week 1:
+- Week 1 (2026-09-03): **First end-to-end run.** Jaber answered 3 of the 5 ITE402 cases from memory; J_AI graded via llama3 (GPU, 1–10s each), 0 invalid JSON, scoreboard worked. All three scored 4/10 with the same finding — answers were operational, examiner wanted the engineering framework (business vs technical goals, constraints, scalability). One recall move learned: "answer the framework, not the story." Run: `runs/run_1788414464.json` + `answers.json` in WSL — real example material for the MUV README.
 - Week 2:
 - Week 3:
 - Week 4:
