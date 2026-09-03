@@ -24,6 +24,7 @@ Source: Engineering Journal, Decision 0072. Updated 2026-09-02 after locating th
 scenario + answer + template name → CLI → valid JSON + timestamped markdown report
 ```
 
+0. **Input guard (bug found 2026-09-03, Jaber's own full run):** the examiner passed two BLANK answers (8/10, 6/10) — LLM judges invent merit when given nothing. Guard in `run_single_case`: empty/trivially-short answer → score 0 / "no answer submitted", model never called.
 1. **One CLI evaluate command** wiring templates + provider + runner (no interactive loop needed)
 2. **JSON validation with bounded retry** — corrective re-prompt on invalid output; fail loudly
 3. **Report writer** — timestamped markdown into `outputs/`
