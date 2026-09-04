@@ -10,6 +10,11 @@ CASES_PATH = Path(__file__).parent / "cases.json"
 RUNS_DIR = Path(__file__).resolve().parents[2] / "runs"
 RUNS_DIR.mkdir(exist_ok=True)
 
+# Anything shorter than this is not gradeable material; the judge never sees it.
+# 20 chars blocks blanks and throwaways ("idk", "no idea") while letting any
+# genuine attempt through. Found 2026-09-03: the model scored blank answers 8/10.
+MIN_ANSWER_CHARS = 20
+
 
 def load_cases():
     with open(CASES_PATH, "r", encoding="utf-8") as f:
@@ -36,6 +41,23 @@ def build_prompt(template_key, case, student_answer):
 
 
 def run_single_case(case, provider, student_answer):
+    answer = (student_answer or "").strip()
+    if len(answer) < MIN_ANSWER_CHARS:
+        return {
+            "timestamp": time.time(),
+            "case_id": case["id"],
+            "type": case["type"],
+            "latency_seconds": 0.0,
+            "result": {
+                "score": 0,
+                "verdict": "fail",
+                "reason": "no answer submitted",
+                "strengths": [],
+                "missing_points": [],
+                "technical_errors": [],
+            },
+        }
+
     prompt = build_prompt(case["prompt_template"], case, student_answer)
 
     start = time.time()
