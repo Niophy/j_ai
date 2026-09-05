@@ -47,13 +47,14 @@ def build_prompt(template_key, case, student_answer):
     raise ValueError(f"Unknown case type: {case_type}")
 
 
-def _wrap(case, latency, status, result):
+def _wrap(case, latency, status, result, answer=None):
     return {
         "timestamp": time.time(),
         "case_id": case["id"],
         "type": case["type"],
         "status": status,
         "latency_seconds": latency,
+        "answer": answer,
         "result": result,
     }
 
@@ -79,7 +80,7 @@ def run_single_case(case, provider, student_answer):
             "score": 0,
             "verdict": "fail",
             "reason": f"answer too short to grade (under {MIN_ANSWER_CHARS} characters)",
-        })
+        }, answer=student_answer)
 
     prompt = build_prompt(case["prompt_template"], case, student_answer)
 
@@ -95,9 +96,9 @@ def run_single_case(case, provider, student_answer):
             "verdict": "fail",
             "error": "Invalid JSON returned",
             "raw_output": response,
-        })
+        }, answer=student_answer)
 
-    return _wrap(case, latency, STATUS_GRADED, parsed)
+    return _wrap(case, latency, STATUS_GRADED, parsed, answer=student_answer)
 
 
 def save_run(results, course=None, version=None, provider=None):
