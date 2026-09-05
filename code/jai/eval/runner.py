@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -38,14 +39,26 @@ def _rubric_block(case):
     expected = case.get("expected") or {}
     lines = ["Marking scheme for THIS question. Grade against it; do not invent other criteria:"]
     for item in expected.get("must_include", []):
-        lines.append(f"- The answer must address: {item}")
+        lines.append(f"- Required point: {item}")
     for group in expected.get("must_include_any", []):
-        lines.append("- The answer must address at least one of: " + "; ".join(group))
-    for item in expected.get("must_avoid", []):
-        lines.append(f"- Penalize the answer if it does this: {item}")
+        lines.append("- Required (any one of): " + "; ".join(group))
+    # Penalty items are opt-in (JAI_RUBRIC_PENALTIES=1): calibration testing on
+    # 2026-09-05 showed 8B-14B local judges echo or even fabricate evidence for
+    # subtle must_avoid items, while must_include grading works well. Keep the
+    # data; only show it to judges strong enough to use it honestly.
+    if os.getenv("JAI_RUBRIC_PENALTIES") == "1":
+        for item in expected.get("must_avoid", []):
+            lines.append(f"- Penalty, ONLY if the answer actually does this: {item}")
     if expected.get("min_points"):
         lines.append(f"- A passing answer covers at least {expected['min_points']} of the required points.")
     lines.append("- If the response is empty, off topic, or contains no substantive attempt, score 0 and verdict fail.")
+    lines.append("")
+    lines.append("Before writing the verdict, check each scheme item against what the student "
+                 "ACTUALLY wrote. A required point goes in the missing list ONLY if the answer "
+                 "truly does not address it, even in different words. "
+                 "EVIDENCE RULE for penalties and errors: every penalty or error you list must end "
+                 "with a short quote from the student's answer, in parentheses, proving it. "
+                 "If you cannot quote the answer committing it, it did not happen and must not be listed.")
     return "\n".join(lines)
 
 
@@ -132,6 +145,13 @@ def run_single_case(case, provider, student_answer):
     return _wrap(case, latency, STATUS_GRADED, parsed, answer=student_answer)
 
 
+def provider_label(provider):
+    """Provider class plus its model, so run files say which judge graded them."""
+    model = getattr(provider, "model", None)
+    name = type(provider).__name__
+    return f"{name}:{model}" if model else name
+
+
 def save_run(results, course=None, version=None, provider=None):
     """Single writer for run files; nanosecond names avoid same-second overwrites."""
     RUNS_DIR.mkdir(exist_ok=True)
@@ -159,7 +179,7 @@ def run_all(student_answers: dict):
         results,
         course=data.get("course"),
         version=data.get("version"),
-        provider=str(type(provider).__name__),
+        provider=provider_label(provider),
     )
     print(f"Saved results to {run_file}")
     return results

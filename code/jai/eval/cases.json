@@ -18,8 +18,8 @@
           "security"
         ],
         "must_avoid": [
-          "inventing vendor quotes",
-          "claiming compliance certifications without evidence"
+          "stating specific prices, costs, or vendor product offers that the scenario does not provide",
+          "claiming the design meets a named compliance standard or certification (such as HIPAA or ISO) without justification"
         ],
         "min_points": 5
       },

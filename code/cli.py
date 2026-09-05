@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 from jai.eval.runner import (
     STATUS_PROVIDER_ERROR,
     load_cases,
+    provider_label,
     run_single_case,
     save_run,
 )
@@ -92,7 +93,7 @@ def cmd_evaluate(args):
             [outcome],
             course="cli",
             version="adhoc",
-            provider=str(type(provider).__name__),
+            provider=provider_label(provider),
         )
         print(f"Saved to {run_file}", file=sys.stderr)
 
