@@ -28,6 +28,7 @@ Scenario + Student Answer + Template
 ```
 
 ## Usage
+Full guide with install steps, adding your own cases and marking schemes, provider switching, and troubleshooting: **[docs/USAGE.md](docs/USAGE.md)**.
 ```bash
 # grade one answer against a stored case (exit 0 pass, 1 fail, 2 error)
 python cli.py evaluate --case REQ_001 --answer myanswer.txt
