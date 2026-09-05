@@ -19,10 +19,67 @@ Sole designer and developer. Architecture documented in my Engineering Journal (
 ## Architecture
 ```
 Scenario + Student Answer + Template
-        ↓  prompt assembly
-     Local LLM (Ollama)
-        ↓  JSON validation (retry on invalid)
- JSON evaluation + timestamped markdown report
+        ↓  prompt assembly (input guard: too-short answers never reach the model)
+     Local LLM (Ollama; provider-agnostic via factory)
+        ↓  JSON validation + brace-extraction rescue
+ status-tagged result (graded / guard_rejected / provider_error)
+        ↓
+ run file → scoreboard (scorers) → markdown report (report)
+```
+
+## Usage
+```bash
+# grade one answer against a stored case (exit 0 pass, 1 fail, 2 error)
+python cli.py evaluate --case REQ_001 --answer myanswer.txt
+
+# grade all cases from an answers file, then aggregate and render
+JAI_MODE=eval JAI_EVAL_ANSWERS=answers.json python main.py
+python -m jai.eval.scorers          # scoreboard for the newest run
+python -m jai.eval.report           # markdown report into outputs/
+```
+
+## Real example
+From an actual run (ITE 402 network-design cases, llama3 on GPU). The student answered three of five cases; the examiner graded consistently and the guard refused the blanks:
+
+```json
+{
+  "cases_total": 5,
+  "cases_graded": 3,
+  "cases_guard_rejected": 2,
+  "cases_provider_error": 0,
+  "average_score": 2.4,
+  "pass_rate": 0.0,
+  "avg_model_latency_seconds": 4.12
+}
+```
+
+A graded verdict, verbatim (the answer described operations and staffing; the rubric wanted the engineering framework):
+
+```json
+{
+  "case_id": "REQ_001",
+  "status": "graded",
+  "result": {
+    "score": 4,
+    "verdict": "fail",
+    "missing_points": [
+      "clearly separate business goals and technical goals",
+      "identify constraints"
+    ]
+  }
+}
+```
+
+And the guard doing its job on a blank answer, model never called:
+
+```json
+{
+  "case_id": "PROT_001",
+  "status": "guard_rejected",
+  "latency_seconds": 0.0,
+  "result": { "score": 0, "verdict": "fail",
+              "reason": "answer too short to grade (under 20 characters)" }
+}
 ```
 
 ## Key Decisions
@@ -45,6 +102,8 @@ J_AI changed how I see AI: before, a technology that generates responses; after,
 Development began **February 2026** (Phases 1–8: WSL environment, Ollama, provider architecture, eval templates — see `docs/Project Journal - J_AI.docx` with build screenshots). Imported to git on 2026-09-02, which is why commit dates are later than the work.
 
 ## Current Status
+**Minimum Useful Version complete** (2026-09-05): input guard, CLI, explicit error-state modeling, scoreboard, markdown reports, and a structured code review with 9 of 10 findings fixed. Next stage: wire the per-case `expected` rubrics into grading.
+
 Working local runtime in WSL2 (`/home/j/J_AI`): Ollama + llama3 inference, provider-agnostic architecture (base provider → factory → env-selected), `.env` config layer, and an eval module with versioned templates, runner, scorers, and test cases. Build history in `docs/Project Journal - J_AI.docx` (Phases 1–8). MUV gap: CLI evaluate command, JSON validation with retry, report writer, README examples, GitHub publish — see [SPEC.md](SPEC.md).
 
 ## Next Improvements
