@@ -28,23 +28,54 @@ def load_cases():
         return json.load(f)
 
 
+def _rubric_block(case):
+    """Render the case's answer key as a marking scheme for the judge.
+
+    Cases carry per-question rubrics in their 'expected' block; before this
+    existed the examiner graded every case of a type against the same generic
+    checklist and the answer key was dead data (code review 2026-09-05, #10).
+    """
+    expected = case.get("expected") or {}
+    lines = ["Marking scheme for THIS question. Grade against it; do not invent other criteria:"]
+    for item in expected.get("must_include", []):
+        lines.append(f"- The answer must address: {item}")
+    for group in expected.get("must_include_any", []):
+        lines.append("- The answer must address at least one of: " + "; ".join(group))
+    for item in expected.get("must_avoid", []):
+        lines.append(f"- Penalize the answer if it does this: {item}")
+    if expected.get("min_points"):
+        lines.append(f"- A passing answer covers at least {expected['min_points']} of the required points.")
+    lines.append("- If the response is empty, off topic, or contains no substantive attempt, score 0 and verdict fail.")
+    return "\n".join(lines)
+
+
 def build_prompt(template_key, case, student_answer):
     template = TEMPLATES[template_key]
     case_type = case["type"]
 
     if case_type in ("requirements_analysis", "logical_design", "security_strategy"):
-        return template.format(
+        prompt = template.format(
             scenario=case["input"]["scenario"],
             student_answer=student_answer,
         )
-
-    if case_type == "protocol_selection":
-        return template.format(
+    elif case_type == "protocol_selection":
+        prompt = template.format(
             question=case["input"]["question"],
             student_answer=student_answer,
         )
+    else:
+        raise ValueError(f"Unknown case type: {case_type}")
 
-    raise ValueError(f"Unknown case type: {case_type}")
+    # Inject the marking scheme just before the JSON output instruction, so the
+    # judge reads criteria before being told the output format. Ad-hoc CLI cases
+    # have no 'expected' block and still get the gradeability rule.
+    rubric = _rubric_block(case)
+    marker = "Return ONLY valid JSON"
+    if marker in prompt:
+        prompt = prompt.replace(marker, rubric + "\n\n" + marker, 1)
+    else:
+        prompt = prompt + "\n" + rubric
+    return prompt
 
 
 def _wrap(case, latency, status, result, answer=None):
