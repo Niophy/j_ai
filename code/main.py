@@ -51,6 +51,10 @@ def eval_mode():
         print("Could not read JAI_EVAL_ANSWERS file. Make sure it is valid JSON.")
         return
 
+    if not isinstance(student_answers, dict):
+        print("JAI_EVAL_ANSWERS must be a JSON object mapping case ids to answers, e.g. {\"REQ_001\": \"...\"}.")
+        return
+
     run_all(student_answers)
 
 

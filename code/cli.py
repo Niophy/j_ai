@@ -6,17 +6,22 @@ Usage:
     python cli.py evaluate --list-templates
     python cli.py evaluate --list-cases
 
-Exit codes: 0 = pass, 1 = fail, 2 = usage or runtime error.
+Exit codes: 0 = pass, 1 = fail (including guard-rejected answers),
+2 = usage error or runtime/provider error (nothing was actually graded).
 """
 
 import argparse
 import json
 import sys
-import time
 
 from dotenv import load_dotenv
 
-from jai.eval.runner import load_cases, run_single_case, RUNS_DIR
+from jai.eval.runner import (
+    STATUS_PROVIDER_ERROR,
+    load_cases,
+    run_single_case,
+    save_run,
+)
 from jai.eval.templates import TEMPLATES
 from src.core.provider_factory import get_provider
 
@@ -78,16 +83,21 @@ def cmd_evaluate(args):
         return 2
 
     answer = read_text(args.answer)
-    outcome = run_single_case(case, get_provider(), answer)
+    provider = get_provider()
+    outcome = run_single_case(case, provider, answer)
     print(json.dumps(outcome, indent=2, ensure_ascii=False))
 
     if args.save:
-        run_file = RUNS_DIR / f"run_{int(time.time())}.json"
-        with open(run_file, "w", encoding="utf-8") as f:
-            json.dump({"course": "cli", "version": "adhoc", "provider": "cli", "results": [outcome]}, f,
-                      indent=2, ensure_ascii=False)
+        run_file = save_run(
+            [outcome],
+            course="cli",
+            version="adhoc",
+            provider=str(type(provider).__name__),
+        )
         print(f"Saved to {run_file}", file=sys.stderr)
 
+    if outcome.get("status") == STATUS_PROVIDER_ERROR:
+        return 2
     return 0 if str(outcome["result"].get("verdict", "")).lower() == "pass" else 1
 
 
@@ -106,7 +116,13 @@ def main():
     ev.set_defaults(func=cmd_evaluate)
 
     args = parser.parse_args()
-    sys.exit(args.func(args))
+    try:
+        sys.exit(args.func(args))
+    except SystemExit:
+        raise
+    except Exception as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(2)
 
 
 if __name__ == "__main__":
