@@ -11,17 +11,17 @@ Evaluate technical answers consistently instead of generating conversational res
 LLM evaluations are inconsistent: same answer, different verdicts. J_AI moves the evaluation criteria *outside* the model (Decision 0003): versioned templates define objectives, scoring criteria, and required output; the model interprets answers only within those boundaries.
 
 ## Technologies Used
-Python · Ollama (local LLM) · JSON schema validation · versioned prompt templates
+Python · Ollama (local LLM: gpt-oss:20b default, qwen2.5:14b, llama3) · schema-enforced structured output · native tool calling (agent) · versioned prompt templates
 
 ## My Role
 Sole designer and developer. Architecture documented in my Engineering Journal (Decisions 0003–0009, 0040–0044, 0072).
 
 ## Architecture
 ```
-Scenario + Student Answer + Template
+Scenario + Student Answer + Template (+ the case's marking scheme)
         ↓  prompt assembly (input guard: too-short answers never reach the model)
-     Local LLM (Ollama; provider-agnostic via factory)
-        ↓  JSON validation + brace-extraction rescue
+     Local LLM (Ollama; provider-agnostic via factory; judge/student roles; thinking control)
+        ↓  schema-enforced verdict (Ollama format) with JSON validation + rescue as fallback
  status-tagged result (graded / guard_rejected / provider_error)
         ↓
  run file → scoreboard (scorers) → markdown report (report)
@@ -106,6 +106,22 @@ What it found on day one, with qwen2.5:14b as both student and judge (transcript
 
 The judge's pass/fail is not tied to its own marking scheme. With `--strict`, the revise loop ran for real: REQ_001 went four submissions (6, 8, 8, 8) and still failed, because the judge kept marking "separate business and technical goals" missing on an answer that opened with explicit *Business Goals* and *Technical Requirements* headings. A false negative, and the student looped on it until the guard stopped the run. Open decision: move the min_points post-check into the runner, or keep the judge's verdict and report the count separately.
 
+## Model bake-off and the architecture change (2026-09-10)
+The agent's findings above raised the question of whether the judge model, not the prompt, was the limit. Three things changed in one pass:
+
+- **Roles.** The judge and the student are configured separately (`JAI_JUDGE_MODEL`, `JAI_STUDENT_MODEL`, and matching `_THINK` settings), so any model can grade any other.
+- **Schema-enforced verdicts.** The verdict contract is now a JSON schema in the runner, passed to Ollama's `format` field, so the shape is guaranteed at the source. Prompt-only JSON with retry and rescue remains as the fallback (`JAI_STRUCTURED=0`).
+- **Thinking control.** `think` is passed through to models that support it (`true`/`false` for the qwen3 family, `low`/`medium`/`high` for gpt-oss).
+
+The bake-off ran the student agent on all five cases in strict mode, each model as both student and judge. The Qwen 3.x family (the strongest open tool-callers) refused to pull on Ollama 0.17.0, so the contest on this machine was qwen2.5:14b against gpt-oss:20b:
+
+| model | strict passes | submissions | nudges | judge "pass" with too many points missing | wall time |
+|---|---|---|---|---|---|
+| qwen2.5:14b | 0 of 5 | 17 | 9 | 16 of 17 | 375s |
+| gpt-oss:20b, think=low | 5 of 5 | 5 | 0 | 0 of 5 | 198s |
+
+Five clean tens from a model grading itself were not taken on trust. Cross-grading: gpt-oss graded qwen's final answers with verdicts consistent with the marking scheme in 5 of 5 (one honest fail at 3/10), gave three deliberately weak control answers 0/10 with every required point listed missing, while qwen graded gpt-oss's answers pass 5 of 5 with a required point listed missing every time. gpt-oss:20b is now the default for both roles. Known calibration item: its scores run generous (many 10s); its verdicts are the trustworthy part. Transcripts in [docs/examples](docs/examples/).
+
 ## Key Decisions
 - Evaluation logic lives in templates, not prompts scattered per use (0003)
 - Templates are versioned, never edited in place — reproducibility (0004)
@@ -126,7 +142,7 @@ J_AI changed how I see AI: before, a technology that generates responses; after,
 Development began **February 2026** (Phases 1–8: WSL environment, Ollama, provider architecture, eval templates — see `docs/Project Journal - J_AI.docx` with build screenshots). Imported to git on 2026-09-02, which is why commit dates are later than the work.
 
 ## Current Status
-**Minimum Useful Version complete** (2026-09-05): input guard, CLI, explicit error-state modeling, scoreboard, markdown reports, and a structured code review with 10 of 10 findings fixed. Rubric grading and judge calibration landed 2026-09-05 (qwen2.5:14b adopted). Student agent landed 2026-09-10 and exposed that the judge's verdict ignores min_points. Next: decide where that post-check lives.
+**Minimum Useful Version complete** (2026-09-05): input guard, CLI, explicit error-state modeling, scoreboard, markdown reports, and a structured code review with 10 of 10 findings fixed. Rubric grading and judge calibration landed 2026-09-05. Student agent landed 2026-09-10 and exposed that the qwen2.5 judge's verdict ignores min_points; the same-day bake-off replaced it with gpt-oss:20b (schema-enforced verdicts, thinking control, judge/student roles). Next: decide whether the min_points post-check also belongs in the runner, and calibrate gpt-oss's generous scores.
 
 Working local runtime in WSL2 (`/home/j/J_AI`): Ollama + llama3 inference, provider-agnostic architecture (base provider → factory → env-selected), `.env` config layer, and an eval module with versioned templates, runner, scorers, and test cases. Build history in `docs/Project Journal - J_AI.docx` (Phases 1–8). MUV gap: CLI evaluate command, JSON validation with retry, report writer, README examples, GitHub publish — see [SPEC.md](SPEC.md).
 

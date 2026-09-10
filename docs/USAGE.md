@@ -78,6 +78,31 @@ python cli.py evaluate --list-templates
 
 Exit codes are scriptable: `0` pass, `1` fail (including guard rejections), `2` usage or runtime error (nothing was actually graded).
 
+### 4. Student agent (the examiner as a tool)
+
+The model sits the exam and the examiner is the only tool it may call. It drafts, submits through `submit_answer`, reads the verdict, revises, and repeats until pass or five submissions. It never sees the case's `expected` block.
+
+```bash
+python -m jai.agent.student --case REQ_001             # exit 0 passed, 1 not passed, 2 error
+python -m jai.agent.student --case LOG_001 --strict    # apply the case's min_points count to the verdict the student sees
+python -m jai.agent.student --case SEC_001 --max-submissions 3 --max-steps 8
+```
+
+Each run writes a JSON record (`runs/agent_<case>_<ns>.json`, including the full transcript) and a readable version in `outputs/`. Guardrails: step cap, submission cap, two nudges at most when the model answers without submitting, refusal of unknown tools, and only a graded submission counts as the final answer.
+
+## Models, roles and thinking
+
+Everything runs through Ollama, and `.env` picks who does what:
+
+| Variable | Effect |
+|---|---|
+| `JAI_OLLAMA_MODEL` | Default model for every role |
+| `JAI_JUDGE_MODEL`, `JAI_STUDENT_MODEL` | Override per role, so the judge and the student agent can be different models |
+| `JAI_THINK`, `JAI_JUDGE_THINK`, `JAI_STUDENT_THINK` | Thinking control, only for models that support it: `true`/`false` for the qwen3 family, `low`/`medium`/`high` for gpt-oss. Unset sends nothing |
+| `JAI_STRUCTURED` | `1` (default): verdicts are schema-enforced by the runtime (Ollama `format`), so the shape is guaranteed at the source. `0`: the older prompt-only JSON path with retry and rescue |
+
+Run files record the exact judge as `OllamaProvider:<model>[:think=<x>][:unstructured]`, so grading is always traceable to a configuration. Pick a model with `tools` and `thinking` in `ollama show <model>` if you want the agent and thinking control; `completion` only models still grade, they just cannot be the student.
+
 ## Reading the output
 
 Every result record carries exactly one `status`:

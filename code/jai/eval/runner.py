@@ -23,6 +23,29 @@ STATUS_GRADED = "graded"                  # the model produced a valid verdict
 STATUS_GUARD_REJECTED = "guard_rejected"  # input guard refused; model never called
 STATUS_PROVIDER_ERROR = "provider_error"  # model called but returned no usable JSON
 
+# The verdict contract, as a JSON schema (2026-09-10). Providers that can
+# constrain decoding (Ollama 'format') enforce it at the source; the rest
+# still go through prompt-only JSON plus the rescue path below. score and
+# verdict are the only required keys; the per-template lists are optional
+# because each template asks for a different subset of them.
+_LIST = {"type": "array", "items": {"type": "string"}}
+VERDICT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "score": {"type": "integer", "minimum": 0, "maximum": 10},
+        "verdict": {"type": "string", "enum": ["pass", "fail"]},
+        "missing_points": _LIST,
+        "technical_errors": _LIST,
+        "design_flaws": _LIST,
+        "incorrect_claims": _LIST,
+        "missing_reasoning": _LIST,
+        "missing_controls": _LIST,
+        "risk_gaps": _LIST,
+        "strengths": _LIST,
+    },
+    "required": ["score", "verdict"],
+}
+
 
 def load_cases():
     with open(CASES_PATH, "r", encoding="utf-8") as f:
@@ -129,7 +152,7 @@ def run_single_case(case, provider, student_answer):
     prompt = build_prompt(case["prompt_template"], case, student_answer)
 
     start = time.time()
-    response = provider.generate_json(prompt)
+    response = provider.generate_structured(prompt, VERDICT_SCHEMA)
     latency = time.time() - start
 
     parsed = _parse_verdict(response)
@@ -146,10 +169,16 @@ def run_single_case(case, provider, student_answer):
 
 
 def provider_label(provider):
-    """Provider class plus its model, so run files say which judge graded them."""
+    """Provider class, model and thinking setting, so run files say exactly who graded."""
     model = getattr(provider, "model", None)
     name = type(provider).__name__
-    return f"{name}:{model}" if model else name
+    label = f"{name}:{model}" if model else name
+    think = getattr(provider, "think", None)
+    if think is not None:
+        label += f":think={think}"
+    if getattr(provider, "structured", None) is False:
+        label += ":unstructured"
+    return label
 
 
 def save_run(results, course=None, version=None, provider=None):
@@ -168,7 +197,7 @@ def save_run(results, course=None, version=None, provider=None):
 
 def run_all(student_answers: dict):
     data = load_cases()
-    provider = get_provider()
+    provider = get_provider(role="judge")
 
     results = []
     for case in data.get("cases", []):

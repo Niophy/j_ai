@@ -84,7 +84,7 @@ def cmd_evaluate(args):
         return 2
 
     answer = read_text(args.answer)
-    provider = get_provider()
+    provider = get_provider(role="judge")
     outcome = run_single_case(case, provider, answer)
     print(json.dumps(outcome, indent=2, ensure_ascii=False))
 

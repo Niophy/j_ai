@@ -22,7 +22,6 @@ Exit codes: 0 = final answer passed, 1 = did not pass, 2 = runtime error.
 
 import argparse
 import json
-import os
 import sys
 import time
 
@@ -182,8 +181,13 @@ def run_student(case, student, judge, max_steps=DEFAULT_MAX_STEPS,
 
     for step in range(1, max_steps + 1):
         steps = step
-        reply = student.chat(messages, tools=TOOLS, options={"num_predict": 1024, "temperature": 0.3})
-        messages.append({"role": "assistant", "content": reply["content"], "tool_calls": reply["tool_calls"]})
+        reply = student.chat(messages, tools=TOOLS, options={"num_predict": 2048, "temperature": 0.3})
+        assistant_msg = {"role": "assistant", "content": reply["content"], "tool_calls": reply["tool_calls"]}
+        if reply.get("thinking"):
+            # Thinking models expect their trace back in the history so a tool
+            # call and its follow-up stay one line of reasoning.
+            assistant_msg["thinking"] = reply["thinking"]
+        messages.append(assistant_msg)
 
         if not reply["tool_calls"]:
             budget_spent = len(attempts) >= max_submissions
@@ -208,13 +212,13 @@ def run_student(case, student, judge, max_steps=DEFAULT_MAX_STEPS,
             if name != TOOL_NAME:
                 # The model asked for a tool that does not exist. Refuse, log, continue.
                 log(f"  step {step}: refused unknown tool '{name}'")
-                messages.append({"role": "tool", "content": json.dumps(
+                messages.append({"role": "tool", "tool_name": str(name), "content": json.dumps(
                     {"error": f"unknown tool '{name}'. Only {TOOL_NAME} exists."})})
                 continue
 
             if len(attempts) >= max_submissions:
                 log(f"  step {step}: submission budget spent, asking for final answer")
-                messages.append({"role": "tool", "content": json.dumps(
+                messages.append({"role": "tool", "tool_name": TOOL_NAME, "content": json.dumps(
                     {"error": "submission limit reached. Reply now with your final answer as plain text."})})
                 continue
 
@@ -239,7 +243,7 @@ def run_student(case, student, judge, max_steps=DEFAULT_MAX_STEPS,
             if str(attempt["verdict"]).lower() == "pass":
                 passed = True
                 shown["note"] = "verdict is pass. Reply now with your final answer as plain text."
-            messages.append({"role": "tool", "content": json.dumps(shown)})
+            messages.append({"role": "tool", "tool_name": TOOL_NAME, "content": json.dumps(shown)})
 
     # The final answer is always a GRADED submission, never the closing text.
     # Second live run 2026-09-10: after a pass the model rewrote its answer in
@@ -324,11 +328,10 @@ def main():
         return 2
 
     try:
-        judge = get_provider()
-        student = get_provider()
-        # Optional: a different student model, so judge and student can be compared.
-        if os.getenv("JAI_STUDENT_MODEL"):
-            student.model = os.getenv("JAI_STUDENT_MODEL")
+        # Roles: JAI_JUDGE_MODEL / JAI_STUDENT_MODEL and *_THINK in .env pick
+        # different models or thinking levels per side; unset means the default.
+        judge = get_provider(role="judge")
+        student = get_provider(role="student")
 
         print(f"[{case['id']}] student={provider_label(student)} judge={provider_label(judge)}")
         record = run_student(case, student, judge, args.max_steps, args.max_submissions, args.strict)
