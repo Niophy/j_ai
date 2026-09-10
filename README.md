@@ -25,6 +25,8 @@ Scenario + Student Answer + Template
  status-tagged result (graded / guard_rejected / provider_error)
         ↓
  run file → scoreboard (scorers) → markdown report (report)
+
+Student agent (jai/agent): model drafts → submit_answer tool → the pipeline above → verdict → revise → repeat
 ```
 
 ## Usage
@@ -83,6 +85,27 @@ And the guard doing its job on a blank answer, model never called:
 }
 ```
 
+## Student agent (the examiner as a tool)
+Added 2026-09-10. The first agent in J_AI turns the pipeline around: the model sits the exam, and the examiner is the only tool it may call. It drafts an answer, submits it through `submit_answer`, reads the verdict, revises on the cited gaps, and repeats until the verdict is pass or five submissions are spent. The agent never sees a case's `expected` block: it learns from feedback, not from the answer key.
+
+```bash
+python -m jai.agent.student --case REQ_001            # exit 0 pass, 1 not passed, 2 error
+python -m jai.agent.student --case LOG_001 --strict   # apply the case's min_points count to the verdict
+```
+
+Guardrails: a 12-step cap, a 5-submission cap, two nudges at most when the model answers without submitting (it tried in 5 of 8 test runs), refusal of any tool that does not exist, and the rule that only a graded submission can be the final answer (after passing, the model rewrote its answer in the closing text; that version had never been examined). Every run writes a JSON record to `runs/` and a readable transcript to `outputs/`.
+
+What it found on day one, with qwen2.5:14b as both student and judge (transcripts in [docs/examples](docs/examples/)):
+
+| case | score | judge verdict | required points listed missing |
+|---|---|---|---|
+| LOG_001 | 6 | pass | 4 of 5 (min_points 5) |
+| REQ_001 | 7 | pass | 2 of 5 (min_points 5) |
+| REQ_002 | 7 | pass | 2 of 5 (min_points 5) |
+| SEC_001 | 7 | pass | 2 of 5 (min_points 5) |
+
+The judge's pass/fail is not tied to its own marking scheme. With `--strict`, the revise loop ran for real: REQ_001 went four submissions (6, 8, 8, 8) and still failed, because the judge kept marking "separate business and technical goals" missing on an answer that opened with explicit *Business Goals* and *Technical Requirements* headings. A false negative, and the student looped on it until the guard stopped the run. Open decision: move the min_points post-check into the runner, or keep the judge's verdict and report the count separately.
+
 ## Key Decisions
 - Evaluation logic lives in templates, not prompts scattered per use (0003)
 - Templates are versioned, never edited in place — reproducibility (0004)
@@ -103,7 +126,7 @@ J_AI changed how I see AI: before, a technology that generates responses; after,
 Development began **February 2026** (Phases 1–8: WSL environment, Ollama, provider architecture, eval templates — see `docs/Project Journal - J_AI.docx` with build screenshots). Imported to git on 2026-09-02, which is why commit dates are later than the work.
 
 ## Current Status
-**Minimum Useful Version complete** (2026-09-05): input guard, CLI, explicit error-state modeling, scoreboard, markdown reports, and a structured code review with 9 of 10 findings fixed. Next stage: wire the per-case `expected` rubrics into grading.
+**Minimum Useful Version complete** (2026-09-05): input guard, CLI, explicit error-state modeling, scoreboard, markdown reports, and a structured code review with 10 of 10 findings fixed. Rubric grading and judge calibration landed 2026-09-05 (qwen2.5:14b adopted). Student agent landed 2026-09-10 and exposed that the judge's verdict ignores min_points. Next: decide where that post-check lives.
 
 Working local runtime in WSL2 (`/home/j/J_AI`): Ollama + llama3 inference, provider-agnostic architecture (base provider → factory → env-selected), `.env` config layer, and an eval module with versioned templates, runner, scorers, and test cases. Build history in `docs/Project Journal - J_AI.docx` (Phases 1–8). MUV gap: CLI evaluate command, JSON validation with retry, report writer, README examples, GitHub publish — see [SPEC.md](SPEC.md).
 

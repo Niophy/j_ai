@@ -51,7 +51,7 @@ Out of scope for MUV: dashboard, history DB, model comparison, multi-template UI
 ## Recall triggers (one line per week as you go)
 - Phases 1–8: documented in `docs/Project Journal - J_AI.docx` ✔
 - Week 1 (2026-09-03): **First end-to-end run.** Jaber answered 3 of the 5 ITE402 cases from memory; J_AI graded via llama3 (GPU, 1–10s each), 0 invalid JSON, scoreboard worked. All three scored 4/10 with the same finding — answers were operational, examiner wanted the engineering framework (business vs technical goals, constraints, scalability). One recall move learned: "answer the framework, not the story." Run: `runs/run_1788414464.json` + `answers.json` in WSL — real example material for the MUV README.
-- Week 2:
+- Week 2 (2026-09-10): **Student agent.** First real agent in J_AI: the model sits the exam and the examiner is its only tool (`python -m jai.agent.student --case REQ_001`). Loop: draft, submit_answer, read verdict, revise, until pass or 5 submissions; guardrails are a 12-step cap, a 2-nudge cap for answering without submitting, refusal of unknown tools, and the rule that only a graded submission counts as the final answer. Never sees the case's expected block. Decision: the agent exists to probe the judge from the student's side. Found on day one: qwen passes every first draft while listing required points as missing (LOG_001: 4 of 5 missing, verdict pass). The verdict field ignores min_points. `--strict` enforces the count agent-side until the post-check moves into the runner. Also found a judge false negative (explicit "Business Goals" heading marked as not separating goals). Recall move: "the judge's pass is not the rubric's pass."
 - Week 3:
 - Week 4:
 - Week 5:

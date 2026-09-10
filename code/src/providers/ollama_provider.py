@@ -67,6 +67,44 @@ class OllamaProvider(BaseProvider):
         data = response.json()
         return (data.get("response", "") or "").strip()
 
+    def chat(self, messages: list, tools: list | None = None, options: dict | None = None) -> dict:
+        """
+        Multi-turn chat via /api/chat, with optional tool calling.
+        Returns the assistant message dict as Ollama gives it: "content" holds
+        text, and "tool_calls" (when present) holds the functions the model
+        wants run. The caller decides whether to run them and loop.
+        """
+        url = f"{self.base_url}/api/chat"
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "stream": False,
+        }
+        if tools:
+            payload["tools"] = tools
+
+        final_options = {
+            "temperature": self.temperature,
+            "num_predict": self.num_predict,
+        }
+        if options:
+            final_options.update(options)
+        payload["options"] = final_options
+
+        response = requests.post(url, json=payload, timeout=self.timeout_seconds)
+
+        if response.status_code != 200:
+            raise RuntimeError(f"Ollama error {response.status_code}: {response.text}")
+
+        data = response.json()
+        message = data.get("message") or {}
+        return {
+            "role": message.get("role", "assistant"),
+            "content": (message.get("content") or "").strip(),
+            "tool_calls": message.get("tool_calls") or [],
+        }
+
     def generate(self, prompt: str) -> str:
         """
         Default generate.
