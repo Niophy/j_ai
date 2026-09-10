@@ -52,6 +52,10 @@ class OllamaProvider(BaseProvider):
         self.num_predict = int(os.getenv("JAI_MAX_TOKENS", "512"))
 
         self.json_retries = int(os.getenv("JAI_JSON_RETRIES", "2"))
+        # Budget for schema-enforced verdicts. Thinking models spend tokens on
+        # the trace before the JSON and the schema cannot constrain that part;
+        # qwen3.8 at 1024 truncated 3 of 17 verdicts (2026-09-10).
+        self.structured_max_tokens = int(os.getenv("JAI_STRUCTURED_MAX_TOKENS", "4096"))
         # Schema-enforced output is the default; JAI_STRUCTURED=0 returns to
         # prompt-only JSON plus retry/rescue (the pre-2026-09-10 path).
         self.structured = os.getenv("JAI_STRUCTURED", "1") != "0"
@@ -159,7 +163,7 @@ class OllamaProvider(BaseProvider):
                 {"role": "user", "content": prompt},
             ],
             format=schema,
-            options={"temperature": 0.0, "num_predict": max(self.num_predict, 1024)},
+            options={"temperature": 0.0, "num_predict": max(self.num_predict, self.structured_max_tokens)},
         )
         return reply["content"]
 

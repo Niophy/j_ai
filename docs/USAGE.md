@@ -101,6 +101,8 @@ Everything runs through Ollama, and `.env` picks who does what:
 | `JAI_THINK`, `JAI_JUDGE_THINK`, `JAI_STUDENT_THINK` | Thinking control, only for models that support it: `true`/`false` for the qwen3 family, `low`/`medium`/`high` for gpt-oss. Unset sends nothing |
 | `JAI_STRUCTURED` | `1` (default): verdicts are schema-enforced by the runtime (Ollama `format`), so the shape is guaranteed at the source. `0`: the older prompt-only JSON path with retry and rescue |
 
+`JAI_STRUCTURED_MAX_TOKENS` (default 4096) is the budget for a schema-enforced verdict; thinking models spend part of it on their trace, so do not lower it for them. `JAI_OLLAMA_TIMEOUT` should be 600 or more for models that spill past VRAM (qwen3.8:27b on a 16GB card grades in 50 to 140 seconds).
+
 Run files record the exact judge as `OllamaProvider:<model>[:think=<x>][:unstructured]`, so grading is always traceable to a configuration. Pick a model with `tools` and `thinking` in `ollama show <model>` if you want the agent and thinking control; `completion` only models still grade, they just cannot be the student.
 
 ## Reading the output

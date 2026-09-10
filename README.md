@@ -11,7 +11,7 @@ Evaluate technical answers consistently instead of generating conversational res
 LLM evaluations are inconsistent: same answer, different verdicts. J_AI moves the evaluation criteria *outside* the model (Decision 0003): versioned templates define objectives, scoring criteria, and required output; the model interprets answers only within those boundaries.
 
 ## Technologies Used
-Python · Ollama (local LLM: gpt-oss:20b default, qwen2.5:14b, llama3) · schema-enforced structured output · native tool calling (agent) · versioned prompt templates
+Python · Ollama 0.34 (local LLM: qwen3.8:27b default, gpt-oss:20b fast alternative, qwen2.5:14b, llama3) · schema-enforced structured output · native tool calling (agent) · thinking control · versioned prompt templates
 
 ## My Role
 Sole designer and developer. Architecture documented in my Engineering Journal (Decisions 0003–0009, 0040–0044, 0072).
@@ -113,14 +113,17 @@ The agent's findings above raised the question of whether the judge model, not t
 - **Schema-enforced verdicts.** The verdict contract is now a JSON schema in the runner, passed to Ollama's `format` field, so the shape is guaranteed at the source. Prompt-only JSON with retry and rescue remains as the fallback (`JAI_STRUCTURED=0`).
 - **Thinking control.** `think` is passed through to models that support it (`true`/`false` for the qwen3 family, `low`/`medium`/`high` for gpt-oss).
 
-The bake-off ran the student agent on all five cases in strict mode, each model as both student and judge. The Qwen 3.x family (the strongest open tool-callers) refused to pull on Ollama 0.17.0, so the contest on this machine was qwen2.5:14b against gpt-oss:20b:
+The bake-off ran the student agent on all five cases in strict mode, each model as both student and judge. Ollama was upgraded from 0.17.0 to 0.34.0 mid-way so the Qwen 3.x family could take part:
 
 | model | strict passes | submissions | nudges | judge "pass" with too many points missing | wall time |
 |---|---|---|---|---|---|
 | qwen2.5:14b | 0 of 5 | 17 | 9 | 16 of 17 | 375s |
 | gpt-oss:20b, think=low | 5 of 5 | 5 | 0 | 0 of 5 | 198s |
+| qwen3.8:27b, think=low | 5 of 5 | 6 | 0 | 0 of 5 | 1027s |
 
-Five clean tens from a model grading itself were not taken on trust. Cross-grading: gpt-oss graded qwen's final answers with verdicts consistent with the marking scheme in 5 of 5 (one honest fail at 3/10), gave three deliberately weak control answers 0/10 with every required point listed missing, while qwen graded gpt-oss's answers pass 5 of 5 with a required point listed missing every time. gpt-oss:20b is now the default for both roles. Known calibration item: its scores run generous (many 10s); its verdicts are the trustworthy part. Transcripts in [docs/examples](docs/examples/).
+Clean passes from a model grading itself were not taken on trust, so every judge graded the other models' final answers plus deliberately weak and partial control answers. qwen2.5 passed everything while listing missing points each time. gpt-oss's verdicts followed the marking scheme and it failed the controls, but it gave 10/10 to every strong-looking answer, including one with a counting error. qwen3.8 was the only judge that failed a strong model's first draft (LOG_001, 3/10 for no hierarchy, no addressing plan, no redundancy, then 8/10 after revision), and on gpt-oss's REQ_002 answer it caught four switches times three labs against a six-lab scenario, spine-leaf used for a three-tier design, and ports confused with uplinks, each finding ending with the quote that proves it. Its weak controls scored 0 to 1, partial controls 1 to 4, all fails.
+
+**qwen3.8:27b at low thinking effort is the default for both roles.** Costs, stated plainly: at 17GB it spills past a 16GB card into RAM, so a grading takes 50 to 140 seconds and a full agent run three to six minutes; the request timeout is 600s and the structured-output budget 4096 tokens (at 1024 it truncated 3 of 17 verdicts). gpt-oss:20b stays on disk as the fast judge, five times quicker, for batch runs where verdict consistency matters more than fine findings. Transcripts in [docs/examples](docs/examples/).
 
 ## Key Decisions
 - Evaluation logic lives in templates, not prompts scattered per use (0003)
@@ -142,7 +145,7 @@ J_AI changed how I see AI: before, a technology that generates responses; after,
 Development began **February 2026** (Phases 1–8: WSL environment, Ollama, provider architecture, eval templates — see `docs/Project Journal - J_AI.docx` with build screenshots). Imported to git on 2026-09-02, which is why commit dates are later than the work.
 
 ## Current Status
-**Minimum Useful Version complete** (2026-09-05): input guard, CLI, explicit error-state modeling, scoreboard, markdown reports, and a structured code review with 10 of 10 findings fixed. Rubric grading and judge calibration landed 2026-09-05. Student agent landed 2026-09-10 and exposed that the qwen2.5 judge's verdict ignores min_points; the same-day bake-off replaced it with gpt-oss:20b (schema-enforced verdicts, thinking control, judge/student roles). Next: decide whether the min_points post-check also belongs in the runner, and calibrate gpt-oss's generous scores.
+**Minimum Useful Version complete** (2026-09-05): input guard, CLI, explicit error-state modeling, scoreboard, markdown reports, and a structured code review with 10 of 10 findings fixed. Rubric grading and judge calibration landed 2026-09-05. Student agent landed 2026-09-10 and exposed that the qwen2.5 judge's verdict ignores min_points; the same-day bake-off (qwen2.5 vs gpt-oss:20b vs qwen3.8:27b, cross-graded) replaced it with qwen3.8:27b, with schema-enforced verdicts, thinking control and judge/student roles. Next: decide whether the min_points post-check also belongs in the runner, and a score ladder to calibrate the new judge.
 
 Working local runtime in WSL2 (`/home/j/J_AI`): Ollama + llama3 inference, provider-agnostic architecture (base provider → factory → env-selected), `.env` config layer, and an eval module with versioned templates, runner, scorers, and test cases. Build history in `docs/Project Journal - J_AI.docx` (Phases 1–8). MUV gap: CLI evaluate command, JSON validation with retry, report writer, README examples, GitHub publish — see [SPEC.md](SPEC.md).
 
