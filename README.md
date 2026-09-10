@@ -42,7 +42,7 @@ python -m jai.eval.report           # markdown report into outputs/
 ```
 
 ## Real example
-From an actual run (ITE 402 network-design cases, llama3 on GPU). The student answered three of five cases; the examiner graded consistently and the guard refused the blanks:
+The same three answers graded on 2026-09-10 by the adopted judge (qwen3.8:27b) are in [docs/examples/report_jaber_answers_qwen38.md](docs/examples/report_jaber_answers_qwen38.md): scores 4, 1, 1, every missing point named, every technical error quoted ("build a server ... that can connect all 35 PCs": a server is not an access device). Below, the first run from 2026-09-03 (llama3 on GPU) for comparison. The student answered three of five cases; the examiner graded consistently and the guard refused the blanks:
 
 ```json
 {
@@ -93,7 +93,7 @@ python -m jai.agent.student --case REQ_001            # exit 0 pass, 1 not passe
 python -m jai.agent.student --case LOG_001 --strict   # apply the case's min_points count to the verdict
 ```
 
-Guardrails: a 12-step cap, a 5-submission cap, two nudges at most when the model answers without submitting (it tried in 5 of 8 test runs), refusal of any tool that does not exist, and the rule that only a graded submission can be the final answer (after passing, the model rewrote its answer in the closing text; that version had never been examined). Every run writes a JSON record to `runs/` and a readable transcript to `outputs/`.
+Guardrails: a 12-step cap, a 5-submission cap, two nudges at most when the model answers without submitting (it tried in 5 of 8 test runs), refusal of any tool that does not exist, and the rule that only a graded submission can be the final answer (after passing, the model rewrote its answer in the closing text; that version had never been examined). Every run writes a JSON record to `runs/` and a readable transcript to `outputs/`. Every stop reason and guardrail is covered by `tests/test_student_agent.py` with a scripted fake provider (`python -m unittest tests.test_student_agent -v`).
 
 What it found on day one, with qwen2.5:14b as both student and judge (transcripts in [docs/examples](docs/examples/)):
 

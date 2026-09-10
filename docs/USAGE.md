@@ -88,7 +88,13 @@ python -m jai.agent.student --case LOG_001 --strict    # apply the case's min_po
 python -m jai.agent.student --case SEC_001 --max-submissions 3 --max-steps 8
 ```
 
-Each run writes a JSON record (`runs/agent_<case>_<ns>.json`, including the full transcript) and a readable version in `outputs/`. Guardrails: step cap, submission cap, two nudges at most when the model answers without submitting, refusal of unknown tools, and only a graded submission counts as the final answer.
+Each run writes a JSON record (`runs/agent_<case>_<ns>.json`, including the full transcript) and a readable version in `outputs/`.
+
+The loop has unit tests with a scripted fake provider (no model, no network), covering every stop reason and guardrail:
+
+```bash
+python -m unittest tests.test_student_agent -v
+``` Guardrails: step cap, submission cap, two nudges at most when the model answers without submitting, refusal of unknown tools, and only a graded submission counts as the final answer.
 
 ## Models, roles and thinking
 
