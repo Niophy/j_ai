@@ -116,41 +116,22 @@ def case_text(case):
     return case["input"].get("scenario") or case["input"].get("question")
 
 
-MISSING_KEYS = ("missing_points", "missing_reasoning", "missing_controls")
+def visible_verdict(outcome):
+    """What the student is allowed to read back from one grading.
 
-
-def strict_check(case, shown):
-    """Apply the case's min_points threshold to the verdict, agent side.
-
-    Found 2026-09-10 by this agent: the examiner listed 4 of 5 required points
-    missing on LOG_001 and still said pass. Its verdict field ignores its own
-    marking scheme. Until that post-check lives in the runner (Jaber's
-    decision), --strict enforces it here so the revise loop can be tested.
-    Only COUNTS are read from 'expected'; the student never sees the items.
+    The marking-scheme check now runs in the runner for every grading (it was
+    this agent's --strict flag until 2026-10-11). When it overrides the judge,
+    the student sees the counts, never the scheme's items.
     """
-    expected = case.get("expected") or {}
-    required = len(expected.get("must_include", [])) + len(expected.get("must_include_any", []))
-    min_points = expected.get("min_points")
-    if not min_points or not required:
-        return shown
-    allowed_missing = max(required - min_points, 0)
-    missing = sum(len(shown.get(k, [])) for k in MISSING_KEYS)
-    if missing > allowed_missing and str(shown.get("verdict", "")).lower() == "pass":
-        shown["verdict"] = "fail"
-        shown["note"] = (f"strict marking: {missing} required points missing, "
-                         f"at most {allowed_missing} allowed for a pass. Cover the missing points.")
-    return shown
-
-
-def visible_verdict(outcome, case=None, strict=False):
-    """What the student is allowed to read back from one grading."""
     result = outcome.get("result") or {}
     shown = {k: result[k] for k in VISIBLE_VERDICT_KEYS if k in result}
     shown["status"] = outcome.get("status")
+    check = result.get("rubric_check") or {}
     if outcome.get("status") != STATUS_GRADED:
         shown["note"] = "the examiner could not grade this submission; it still used one attempt"
-    elif strict and case is not None:
-        shown = strict_check(case, shown)
+    elif check.get("overridden"):
+        shown["note"] = (f"marking scheme: {check['missing_listed']} required points missing, "
+                         f"at most {check['allowed_missing']} allowed for a pass. Cover the missing points.")
     return shown
 
 
@@ -165,7 +146,7 @@ def _tool_args(call):
 
 
 def run_student(case, student, judge, max_steps=DEFAULT_MAX_STEPS,
-                max_submissions=DEFAULT_MAX_SUBMISSIONS, strict=False, log=print):
+                max_submissions=DEFAULT_MAX_SUBMISSIONS, log=print):
     """The agent loop. Returns a record of everything that happened."""
     messages = [
         {"role": "system", "content": STUDENT_SYSTEM},
@@ -224,14 +205,15 @@ def run_student(case, student, judge, max_steps=DEFAULT_MAX_STEPS,
 
             answer = str(_tool_args(call).get("answer") or "")
             outcome = run_single_case(case, judge, answer)
-            shown = visible_verdict(outcome, case, strict)
+            shown = visible_verdict(outcome)
+            result = outcome["result"]
             attempt = {
                 "n": len(attempts) + 1,
                 "step": step,
                 "status": outcome["status"],
-                "score": outcome["result"].get("score"),
-                "verdict": shown.get("verdict"),
-                "judge_verdict": outcome["result"].get("verdict"),
+                "score": result.get("score"),
+                "verdict": result.get("verdict"),
+                "judge_verdict": (result.get("rubric_check") or {}).get("judge_verdict", result.get("verdict")),
                 "latency_seconds": round(outcome["latency_seconds"], 2),
                 "answer": answer,
                 "verdict_shown": shown,
@@ -262,7 +244,6 @@ def run_student(case, student, judge, max_steps=DEFAULT_MAX_STEPS,
         "judge": provider_label(judge),
         "max_steps": max_steps,
         "max_submissions": max_submissions,
-        "strict": strict,
         "steps": steps,
         "submissions": len(attempts),
         "nudges": nudges,
@@ -294,7 +275,7 @@ def write_markdown(record):
         f"Student: `{record['student']}` · Judge: `{record['judge']}` · "
         f"steps {record['steps']}/{record['max_steps']} · "
         f"submissions {record['submissions']}/{record['max_submissions']} · "
-        f"nudges {record['nudges']} · strict {record['strict']} · stop: {record['stop_reason']} · {record['elapsed_seconds']}s",
+        f"nudges {record['nudges']} · stop: {record['stop_reason']} · {record['elapsed_seconds']}s",
         "",
         "| attempt | score | verdict | judge said | status | words |",
         "|---|---|---|---|---|---|",
@@ -317,8 +298,10 @@ def main():
     parser.add_argument("--case", required=True, help="case id from cases.json")
     parser.add_argument("--max-steps", type=int, default=DEFAULT_MAX_STEPS)
     parser.add_argument("--max-submissions", type=int, default=DEFAULT_MAX_SUBMISSIONS)
+    # Kept so older commands still run. The runner applies the min_points check
+    # to every grading since 2026-10-11, so the flag no longer changes anything.
     parser.add_argument("--strict", action="store_true",
-                        help="apply the case's min_points threshold to the verdict the student sees")
+                        help="no-op, kept for compatibility: the runner always applies the marking-scheme check")
     parser.add_argument("--no-save", action="store_true", help="do not write run/outputs files")
     args = parser.parse_args()
 
@@ -334,13 +317,13 @@ def main():
         student = get_provider(role="student")
 
         print(f"[{case['id']}] student={provider_label(student)} judge={provider_label(judge)}")
-        record = run_student(case, student, judge, args.max_steps, args.max_submissions, args.strict)
+        record = run_student(case, student, judge, args.max_steps, args.max_submissions)
     except Exception as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2
 
     print(f"stop={record['stop_reason']} steps={record['steps']} submissions={record['submissions']} "
-          f"nudges={record['nudges']} strict={record['strict']} passed={record['passed']} "
+          f"nudges={record['nudges']} passed={record['passed']} "
           f"elapsed={record['elapsed_seconds']}s")
     if not args.no_save:
         print(f"Saved {save_record(record)}")

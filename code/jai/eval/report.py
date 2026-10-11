@@ -66,6 +66,13 @@ def build_report(run: dict) -> str:
                 lines.append(f"> {answer_line}")
             lines.append("")
 
+        check = result.get("rubric_check") or {}
+        if check.get("overridden"):
+            lines += [f"**Marking-scheme check:** the judge said pass, but listed "
+                      f"{check['missing_listed']} required points missing where at most "
+                      f"{check['allowed_missing']} are allowed (min_points {check['min_points']} "
+                      f"of {check['required_points']}). Verdict set to fail.", ""]
+
         if result.get("reason"):
             lines += [f"**Reason:** {result['reason']}", ""]
         if result.get("error"):

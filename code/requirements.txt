@@ -1,0 +1,6 @@
+# Core: everything J_AI needs with the default Ollama provider.
+requests>=2.32
+python-dotenv>=1.0
+
+# Optional: only for JAI_PROVIDER=gpt. Install with: pip install openai
+# openai>=2.0

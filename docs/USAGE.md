@@ -6,8 +6,8 @@ J_AI is a local-first AI evaluation engine: you give it exam-style questions wit
 
 - Linux or WSL2 (developed on Ubuntu 24.04 inside WSL2)
 - Python 3.10+
-- [Ollama](https://ollama.com) with at least one model pulled (default: `llama3`)
-- Optional: an OpenAI API key if you want the GPT provider instead of Ollama
+- [Ollama](https://ollama.com) with at least one model pulled (`llama3` runs anywhere; see "Models, roles and thinking" for the stronger judges)
+- Optional: an OpenAI API key and `pip install openai` if you want the GPT provider instead of Ollama
 
 ## Install
 
@@ -16,7 +16,7 @@ git clone https://github.com/Niophy/j_ai.git
 cd j_ai/code
 python3 -m venv venv
 source venv/bin/activate
-pip install requests python-dotenv
+pip install -r requirements.txt
 ollama pull llama3
 ```
 
@@ -28,7 +28,13 @@ cp .env.example .env
 
 The defaults (Ollama on localhost, llama3) work out of the box; you only edit `.env` to switch models or providers.
 
-## Three ways to use it
+Check the install without a model (all tests use a fake provider):
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+## Four ways to use it
 
 ### 1. Chat mode (sanity check)
 
@@ -84,17 +90,16 @@ The model sits the exam and the examiner is the only tool it may call. It drafts
 
 ```bash
 python -m jai.agent.student --case REQ_001             # exit 0 passed, 1 not passed, 2 error
-python -m jai.agent.student --case LOG_001 --strict    # apply the case's min_points count to the verdict the student sees
 python -m jai.agent.student --case SEC_001 --max-submissions 3 --max-steps 8
 ```
 
-Each run writes a JSON record (`runs/agent_<case>_<ns>.json`, including the full transcript) and a readable version in `outputs/`.
+Each run writes a JSON record (`runs/agent_<case>_<ns>.json`, including the full transcript) and a readable version in `outputs/`. Guardrails: step cap, submission cap, two nudges at most when the model answers without submitting, refusal of unknown tools, and only a graded submission counts as the final answer. The older `--strict` flag is still accepted but does nothing: the runner applies the marking-scheme check to every grading.
 
-The loop has unit tests with a scripted fake provider (no model, no network), covering every stop reason and guardrail:
+All guardrails and stop reasons have unit tests with a scripted fake provider, no model needed:
 
 ```bash
-python -m unittest tests.test_student_agent -v
-``` Guardrails: step cap, submission cap, two nudges at most when the model answers without submitting, refusal of unknown tools, and only a graded submission counts as the final answer.
+python -m unittest discover -s tests -v
+```
 
 ## Models, roles and thinking
 
@@ -121,7 +126,9 @@ Every result record carries exactly one `status`:
 | `guard_rejected` | The input guard refused (answer under 20 characters); the model never ran |
 | `provider_error` | The model ran but returned no usable JSON |
 
-The verdict itself contains `score` (0 to 10), `verdict` (pass or fail), and template-specific detail lists such as `missing_points`, `design_flaws`, or `incorrect_claims`. The scoreboard counts each status separately, averages scores over gradeable rows, and averages latency over model-graded rows only. The report renders all of it per case: the question, the submitted answer quoted back, and the examiner's findings.
+The verdict itself contains `score` (0 to 10), `verdict` (pass or fail), and template-specific detail lists such as `missing_points`, `design_flaws`, or `incorrect_claims`.
+
+**Marking-scheme check.** For cases with `min_points`, the runner holds the verdict to the scheme in code. If the judge says pass but lists more required points missing than `min_points` allows, the verdict becomes fail. The record keeps the judge's own verdict and the counts in `rubric_check`, and the report prints a line for every override. The check only ever makes grading stricter, never turns a fail into a pass. `JAI_RUBRIC_CHECK=0` switches it off. The scoreboard counts each status separately, averages scores over gradeable rows, and averages latency over model-graded rows only. The report renders all of it per case: the question, the submitted answer quoted back, and the examiner's findings.
 
 ## Make it yours
 
@@ -143,7 +150,7 @@ Cases live in `jai/eval/cases.json`. The `expected` block is the answer key, and
 }
 ```
 
-`must_include` items become required points, `must_avoid` items become penalties, `min_points` sets the passing bar, and `must_include_any` (a list of lists) accepts any one item per group. Editing a rubric changes grading immediately.
+`must_include` items become required points, `must_avoid` items become penalties (shown to the judge only with `JAI_RUBRIC_PENALTIES=1`), `min_points` sets the passing bar and is enforced by the marking-scheme check, and `must_include_any` (a list of lists) accepts any one item per group. Editing a rubric changes grading immediately.
 
 ### Add a template
 
@@ -151,7 +158,7 @@ Templates live in `jai/eval/templates.py`, named `<type>_vN`. Use `{scenario}` (
 
 ### Switch providers
 
-Set `JAI_PROVIDER=gpt` with `OPENAI_API_KEY` and `JAI_GPT_MODEL` in `.env` to grade through OpenAI instead of Ollama. The runner's JSON validation and rescue apply to every provider.
+Run `pip install openai`, then set `JAI_PROVIDER=gpt` with `OPENAI_API_KEY` and `JAI_GPT_MODEL` in `.env` to grade through OpenAI instead of Ollama. The runner's JSON validation and rescue apply to every provider.
 
 ### Tune the guard
 
@@ -162,7 +169,10 @@ Set `JAI_PROVIDER=gpt` with `OPENAI_API_KEY` and `JAI_GPT_MODEL` in `.env` to gr
 | Symptom | Cause and fix |
 |---|---|
 | CLI exits 2 with a connection error | Ollama is not running: `ollama serve` (or check the systemd service) |
-| `provider_error` results | The model returned unparseable output even after retries and rescue; try a stronger model or lower `JAI_MAX_TOKENS` pressure |
+| `provider_error` results | The model returned unparseable output even after retries and rescue. With a thinking model the usual cause is a truncated verdict: keep `JAI_STRUCTURED_MAX_TOKENS` at 4096 or raise it. Otherwise try a stronger model |
+| Read timed out | The model is slower than `JAI_OLLAMA_TIMEOUT`; set it to 600 for large models that spill past VRAM |
+| `No module named 'openai'` | Only needed for `JAI_PROVIDER=gpt`: `pip install openai` |
+| A pass you expected shows as fail with a marking-scheme note | The judge listed more required points missing than `min_points` allows; see `rubric_check` in the run file |
 | `Unknown provider` | `JAI_PROVIDER` in `.env` is not `ollama` or `gpt` |
 | Scoreboard says "No run file found" | No eval has been run yet; run batch evaluation first |
 | Answers file rejected | It must be a JSON object mapping case ids to answer strings, not a list |

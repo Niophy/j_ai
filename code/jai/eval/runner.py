@@ -114,6 +114,47 @@ def build_prompt(template_key, case, student_answer):
     return prompt
 
 
+# Lists in which the judge names required points the answer does not cover.
+MISSING_KEYS = ("missing_points", "missing_reasoning", "missing_controls")
+
+
+def apply_rubric_check(case, result):
+    """Hold the verdict to the case's own marking scheme (decided 2026-10-11).
+
+    The student agent found the judge saying "pass" while listing more required
+    points missing than min_points allows (qwen2.5: 16 of 17 verdicts). The
+    pass/fail line is a rule, so it is applied as code, not left to the model:
+    if the judge's count of missing points exceeds what min_points permits, a
+    pass becomes a fail. It only ever makes grading stricter, never flips a fail
+    to a pass. The judge's own verdict is kept in result["rubric_check"] so
+    every override is visible in the run file and the report.
+    JAI_RUBRIC_CHECK=0 switches it off.
+    """
+    if os.getenv("JAI_RUBRIC_CHECK", "1") == "0":
+        return result
+    expected = case.get("expected") or {}
+    required = len(expected.get("must_include", [])) + len(expected.get("must_include_any", []))
+    min_points = expected.get("min_points")
+    if not min_points or not required:
+        return result
+
+    allowed_missing = max(required - min_points, 0)
+    missing_listed = sum(len(result.get(k) or []) for k in MISSING_KEYS)
+    judge_verdict = str(result.get("verdict", "")).lower()
+    overridden = judge_verdict == "pass" and missing_listed > allowed_missing
+    if overridden:
+        result["verdict"] = "fail"
+    result["rubric_check"] = {
+        "judge_verdict": judge_verdict,
+        "required_points": required,
+        "min_points": min_points,
+        "missing_listed": missing_listed,
+        "allowed_missing": allowed_missing,
+        "overridden": overridden,
+    }
+    return result
+
+
 def _wrap(case, latency, status, result, answer=None):
     return {
         "timestamp": time.time(),
@@ -165,7 +206,7 @@ def run_single_case(case, provider, student_answer):
             "raw_output": response,
         }, answer=student_answer)
 
-    return _wrap(case, latency, STATUS_GRADED, parsed, answer=student_answer)
+    return _wrap(case, latency, STATUS_GRADED, apply_rubric_check(case, parsed), answer=student_answer)
 
 
 def provider_label(provider):

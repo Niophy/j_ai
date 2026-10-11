@@ -151,12 +151,16 @@ class StudentAgentTests(unittest.TestCase):
         self.assertEqual(r["stop_reason"], "final_answer")
         self.assertEqual(r["final_answer"], GOOD_ANSWER)  # best graded attempt, not the closing text
 
-    def test_strict_overrides_lenient_pass(self):
+    def test_rubric_check_overrides_lenient_pass(self):
+        # The runner's marking-scheme check (was the agent's --strict until 2026-10-11)
+        os.environ.pop("JAI_RUBRIC_CHECK", None)
         lenient = {"score": 8, "verdict": "pass", "missing_points": ["a", "b"]}  # 2 missing, 0 allowed
         s = FakeStudent([{"tool_calls": [tool_call(agent.TOOL_NAME)]}, {"content": "x"}, {"content": "x"}, {"content": "x"}])
-        r = run(s, FakeJudge([lenient]), strict=True)
+        r = run(s, FakeJudge([lenient]))
         self.assertEqual(r["attempts"][0]["judge_verdict"], "pass")
         self.assertEqual(r["attempts"][0]["verdict"], "fail")
+        self.assertIn("marking scheme", r["attempts"][0]["verdict_shown"]["note"])
+        self.assertNotIn("rubric_check", r["attempts"][0]["verdict_shown"])
         self.assertFalse(r["passed"])
 
     def test_student_never_sees_expected_block(self):

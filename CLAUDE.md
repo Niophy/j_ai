@@ -11,6 +11,6 @@ J_AI is Jaber's flagship AI project: a structured evaluation engine (templates i
 - **Jaber builds; Claude coaches** — prepare, review, unblock; don't write the implementation unless he asks.
 - **Recall over memorization** — each session adds one line to SPEC.md's recall triggers (what exists now + the one decision made). Stop-condition for any explanation: one clear paragraph.
 - **Never commit `.env`** (it configures JAI_PROVIDER / model / base URL and may hold keys).
-- Known issue queued in week 1: `src/**/__int__.py` should be `__init__.py`.
-- MUV scope is frozen (see SPEC.md) — resist feature creep; the journal's Decision 0072 says small-but-complete beats large-but-unfinished.
+- v1.0 scope is frozen (see SPEC.md's checklist): resist feature creep until the tag. The journal's Decision 0072 says small but complete beats large but unfinished. v2 ideas go in SPEC's out-of-scope list.
+- Before calling anything finished, run the clean-clone test (fresh clone, fresh venv, `pip install -r requirements.txt`, `python -m unittest discover -s tests`). It caught a broken install on 2026-10-11.
 - **CV rule:** publishing the MUV to GitHub is a CV-ready moment — propose the bullet when it happens.

@@ -1,7 +1,9 @@
 import os
 from src.core.base_provider import BaseProvider
 from src.providers.ollama_provider import OllamaProvider
-from src.providers.gpt_provider import GPTProvider
+# GPTProvider is imported inside get_provider, only when selected: importing it
+# here made the optional `openai` package a hard dependency, and a fresh clone
+# following the install guide failed on the first command (found 2026-10-11).
 
 
 def get_provider(role: str | None = None) -> BaseProvider:
@@ -24,6 +26,7 @@ def get_provider(role: str | None = None) -> BaseProvider:
         return OllamaProvider(model=model, think=think)
 
     if provider_name == "gpt":
+        from src.providers.gpt_provider import GPTProvider  # needs: pip install openai
         return GPTProvider()
 
     raise ValueError(f"Unknown provider: {provider_name}")
