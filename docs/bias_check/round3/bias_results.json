@@ -1,0 +1,123 @@
+{
+  "REQ_001:polished": {
+    "score": 10,
+    "judge_score": 9,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [],
+    "seconds": 96.6,
+    "gpu_idle_w": 22.97,
+    "gpu_avg_w": 56.2,
+    "energy_wh": 1.507
+  },
+  "REQ_001:rough": {
+    "score": 10,
+    "judge_score": 8,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [],
+    "seconds": 66.6,
+    "gpu_idle_w": 70.1,
+    "gpu_avg_w": 80.5,
+    "energy_wh": 1.489
+  },
+  "LOG_001:polished": {
+    "score": 10,
+    "judge_score": 8,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [
+      "No mention of QoS or bandwidth prioritisation for Engineering's heavy internal traffic, which was explicitly called out in the scenario",
+      "ACL policy for Finance is stated in general terms without specifying which protocols or services are permitted, making the 'strict access control' requirement only partially addressed"
+    ],
+    "seconds": 85.7,
+    "gpu_idle_w": 104.71,
+    "gpu_avg_w": 93.8,
+    "energy_wh": 2.234
+  },
+  "LOG_001:rough": {
+    "score": 10,
+    "judge_score": 7,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [
+      "No mention of how the management VLAN is secured (e.g., restricting access to only authorized management hosts, or using a dedicated management interface on switches).",
+      "No mention of Spanning Tree Protocol considerations or how dual uplinks interact with STP (e.g., PortFast, BPDU Guard, or using LACP to avoid loops).",
+      "ACLs are mentioned generically but no indication of where they are applied (inbound/outbound on which interface) or what specific traffic is permitted/denied for Finance."
+    ],
+    "seconds": 89.5,
+    "gpu_idle_w": 65.5,
+    "gpu_avg_w": 69.0,
+    "energy_wh": 1.717
+  },
+  "PROT_001:polished": {
+    "score": 10,
+    "judge_score": 9,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [],
+    "seconds": 68.2,
+    "gpu_idle_w": 23.88,
+    "gpu_avg_w": 68.1,
+    "energy_wh": 1.29
+  },
+  "PROT_001:rough": {
+    "score": 10,
+    "judge_score": 8,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [],
+    "seconds": 57.0,
+    "gpu_idle_w": 60.46,
+    "gpu_avg_w": 69.2,
+    "energy_wh": 1.094
+  },
+  "SEC_001:polished": {
+    "score": 2,
+    "judge_score": 2,
+    "verdict": "fail",
+    "status": "graded",
+    "missing": [
+      "Segmentation",
+      "Least privilege",
+      "Monitoring",
+      "Public facing isolation"
+    ],
+    "errors": [
+      "No internal network segmentation means lateral movement is possible after initial compromise",
+      "No least privilege or access control model means compromised credentials grant excessive access",
+      "No monitoring or logging means intrusions go undetected",
+      "Public website is not explicitly isolated (e.g., DMZ) from internal application servers"
+    ],
+    "seconds": 73.1,
+    "gpu_idle_w": 63.59,
+    "gpu_avg_w": 68.7,
+    "energy_wh": 1.395
+  },
+  "SEC_001:rough": {
+    "score": 4,
+    "judge_score": 2,
+    "verdict": "fail",
+    "status": "graded",
+    "missing": [
+      "segmentation",
+      "least privilege",
+      "monitoring"
+    ],
+    "errors": [
+      "No internal network segmentation (e.g., VLANs, zones) to limit lateral movement",
+      "No mention of least privilege or role-based access control for internal apps",
+      "No monitoring, logging, or alerting (SIEM, IDS/IPS, audit logs) to detect breaches"
+    ],
+    "seconds": 66.6,
+    "gpu_idle_w": 69.46,
+    "gpu_avg_w": 68.2,
+    "energy_wh": 1.261
+  }
+}

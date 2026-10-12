@@ -94,7 +94,7 @@ class StudentAgentTests(unittest.TestCase):
         ])
         r = run(s, FakeJudge([FAIL, PASS]))
         self.assertTrue(r["passed"])
-        self.assertEqual([a["score"] for a in r["attempts"]], [4, 9])
+        self.assertEqual([a["score"] for a in r["attempts"]], [3, 10])  # points-based: 1 of 3, 3 of 3
         self.assertTrue(r["final_answer"].endswith("v2"))
 
     def test_unknown_tool_is_refused_and_loop_continues(self):

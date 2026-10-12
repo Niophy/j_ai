@@ -64,7 +64,7 @@ class GuardAndErrors(unittest.TestCase):
     def test_json_wrapped_in_prose_is_rescued(self):
         out, _ = grade('Here you go: {"score": 7, "verdict": "pass", "missing_points": []} thanks')
         self.assertEqual(out["status"], runner.STATUS_GRADED)
-        self.assertEqual(out["result"]["score"], 7)
+        self.assertEqual(out["result"]["score_check"]["judge_score"], 7)
 
 
 class RubricCheck(unittest.TestCase):

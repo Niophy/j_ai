@@ -38,7 +38,7 @@ Student agent (jai/agent): model drafts → submit_answer tool → the pipeline 
 Full guide with install steps, adding your own cases and marking schemes, provider switching, and troubleshooting: **[docs/USAGE.md](docs/USAGE.md)**.
 ```bash
 cd code && pip install -r requirements.txt && cp .env.example .env
-python -m unittest discover -s tests   # 35 tests, fake provider, no model needed
+python -m unittest discover -s tests   # 42 tests, fake provider, no model needed
 
 # grade one answer against a stored case (exit 0 pass, 1 fail, 2 error)
 python cli.py evaluate --case REQ_001 --answer myanswer.txt
@@ -192,6 +192,18 @@ v2.0 adds what turns a grading tool into something an organization can run and m
 
 35 unit tests run without a model. Results now record which template graded them.
 
+## JADE v2.1 (2026-10-12)
+The v2.0 bias check showed where the language penalty lived: strong answers with 0 required points missing still lost 1 to 2 points in rough English, so the bias sat in the judge's free score. v2.1 computes the score in code: **10 x required points covered / required points**, rounded half up. The judge's own score is kept beside it in `score_check`, a judge score of 0 is kept for "no substantive attempt", and `JAI_SCORE_FROM_POINTS=0` switches it off. The verdict is never touched.
+
+| Check | Result |
+|---|---|
+| Bias check round 3, registered before grading | All 8 gradings matched the prediction. The three strong pairs now score 10 and 10 (gap 0, was up to 2) |
+| Registered criterion (same verdict, no gap over 1) | Failed on SEC_001 only: 2 polished, 4 rough. The judge misses one absent point in the rough version, in all three rounds, so the language still affects point detection in 1 of 4 pairs, here in favour of the rough writer |
+| Regression | Test A and B judge outputs re-scored with the new rule: 10 of 10 predictions still match |
+| Tests | 42 unit tests, no model (7 new for the score rule) |
+
+What a score means changed: it is now the share of required points covered. A failing answer can score up to 8 when it misses a point the scheme requires, so read the verdict first.
+
 ## Key Decisions
 - Evaluation logic lives in templates, not prompts scattered per use (0003).
 - Templates are versioned, never edited in place, for reproducibility (0004).
@@ -202,6 +214,7 @@ v2.0 adds what turns a grading tool into something an organization can run and m
 - No model grades itself unchecked: judges are chosen by cross-grading and control answers (2026-09-10).
 - Fairness is tested, not assumed: a bias check (same content, polished and rough English) is a release gate, and its first finding led to versioned v2 templates (2026-10-12).
 - The pass line is a rule, so it is applied as code: a judge "pass" with more required points missing than `min_points` allows becomes a fail, and the judge's own verdict is kept beside it (2026-10-11).
+- The score is a rule too: since v2.1 it is computed from the required points covered, because the bias check found the language penalty in the judge's free score (2026-10-12).
 
 ## Challenges
 - **Missing dependency on install.** The Ollama installer failed on a missing `zstd`. Diagnosed from the error output and fixed with `apt install zstd` before reinstalling (Phase 3).
@@ -218,12 +231,12 @@ v2.0 adds what turns a grading tool into something an organization can run and m
 JADE changed how I see AI: before, a technology that generates responses; after, **one module inside a larger software architecture**. The model was never the problem, the architecture was. Reliable AI systems need validation, structured outputs, versioning, documentation, and testing around the model, and those surrounding systems often contribute more to quality than the model itself. Prompt engineering matured from "writing better instructions" into **software specification**: a formal contract between the system and the model. And a bigger model is not automatically a better judge. It has to be calibrated on answers whose grade you already know.
 
 ## Timeline
-Development began in **December 2025** with the Linux environment (Phase 1). Ollama and the first model followed in February 2026 (Phase 3), then the provider architecture and eval templates (Phases 4 to 8; see `docs/Project Journal - J_AI.docx` with build screenshots). The code was imported to git on 2026-09-02, which is why commit dates are later than the work. Minimum Useful Version on 2026-09-05, student agent and model bake-off on 2026-09-10, v1.0 hardening on 2026-10-11, final tests and **v1.0 release on 2026-10-12**, and **v2.0** (history, KPIs, API, bias check, governance) the same day. The journal covers all of it in 19 phases. Throughout that time the project was named J_AI; it became **JADE** on 2026-10-12 with v1.0.1.
+Development began in **December 2025** with the Linux environment (Phase 1). Ollama and the first model followed in February 2026 (Phase 3), then the provider architecture and eval templates (Phases 4 to 8; see `docs/Project Journal - J_AI.docx` with build screenshots). The code was imported to git on 2026-09-02, which is why commit dates are later than the work. Minimum Useful Version on 2026-09-05, student agent and model bake-off on 2026-09-10, v1.0 hardening on 2026-10-11, final tests and **v1.0 release on 2026-10-12**, and **v2.0** (history, KPIs, API, bias check, governance) and **v2.1** (score from the marking scheme) the same day. The journal covers all of it in 21 phases. Throughout that time the project was named J_AI; it became **JADE** on 2026-10-12 with v1.0.1.
 
 ## Current Status
-**v2.0 released** (2026-10-12), on top of v1.0 the same day. Every item in the [SPEC.md](SPEC.md) checklists is done, confirmed by pre-registered tests. The planned practice loop (re-answering two cases and regrading) is closed: the two pre-registered final tests stand in for it.
+**v2.1 released** (2026-10-12), on top of v1.0 and v2.0 the same day. Every item in the [SPEC.md](SPEC.md) checklists is done, confirmed by pre-registered tests. The planned practice loop (re-answering two cases and regrading) is closed: the two pre-registered final tests stand in for it.
 
-What runs, all local in WSL2: input guard, CLI, batch evaluation, scoreboard, markdown reports, schema-enforced verdicts with a marking-scheme check, judge and student roles, thinking control, the student agent, evaluation history, KPIs, a local HTTP API and retention control. qwen3.8:27b is the default judge, with v2 templates. 35 unit tests run without a model.
+What runs, all local in WSL2: input guard, CLI, batch evaluation, scoreboard, markdown reports, schema-enforced verdicts with a marking-scheme check, judge and student roles, thinking control, the student agent, evaluation history, KPIs, a local HTTP API and retention control. qwen3.8:27b is the default judge, with v2 templates and the score computed from the marking scheme. 42 unit tests run without a model.
 
 ## Next Improvements
 More subjects and templates · a web dashboard over the history and KPIs · document analysis · instructor labelling workflow for the agreement KPI.
@@ -233,6 +246,6 @@ More subjects and templates · a web dashboard over the history and KPIs · docu
 - **Missing-point counting is literal.** The marking-scheme check counts everything the judge lists as missing, including the template's own checklist questions, so it errs on the strict side.
 - **One domain, five cases.** The case set is five original network-design scenarios; the engine is general, the content is not yet.
 - **No dashboard.** History and KPIs are on the command line and the API; there is no web interface yet.
-- **Residual score gap for rough English.** Verdicts were language-neutral in testing, but rough English lost up to 2 points on 1 of 4 strong answers ([bias check](docs/bias_check/README.md)). Do not rank learners by score across language backgrounds.
+- **Language still affects point detection, in one case.** Verdicts were language-neutral in all 12 tested pairs, and since v2.1 strong answers score the same in polished and rough English. On one weak answer the judge misses an absent point in the rough version only, in all three rounds, which lifts that score by 2 ([bias check](docs/bias_check/README.md)). Instructor review of borderline verdicts covers it.
 - **Instructor agreement needs labels.** The KPI is computed only when instructor verdicts are supplied.
-- **Scores run generous on strong answers.** Verdicts are the trustworthy signal; a score of 8 against 9 means little.
+- **A score is coverage, not quality.** Since v2.1 a score is the share of required points covered. Findings such as design flaws are listed but do not lower it, and a failing answer can score up to 8. The verdict is the decision.

@@ -155,6 +155,39 @@ def apply_rubric_check(case, result):
     return result
 
 
+def apply_points_score(case, result):
+    """Score from the marking scheme, not the judge's free number (decided 2026-10-12, v2.1).
+
+    The v2.0 bias check found the bias in the judge's free score: polished and
+    rough answers with the same content had 0 missing points each, yet the rough
+    one scored 1 to 2 lower. A count of required points covered cannot move with
+    the writing, so the score is computed here: 10 x covered / required, rounded
+    half up. A judge score of 0 is kept (the scheme's "no substantive attempt"
+    rule). The judge's own score is kept in result["score_check"].
+    JAI_SCORE_FROM_POINTS=0 switches it off.
+    """
+    if os.getenv("JAI_SCORE_FROM_POINTS", "1") == "0":
+        return result
+    expected = case.get("expected") or {}
+    required = len(expected.get("must_include", [])) + len(expected.get("must_include_any", []))
+    if not required:
+        return result
+
+    judge_score = result.get("score")
+    missing = min(sum(len(result.get(k) or []) for k in MISSING_KEYS), required)
+    score = int(10 * (required - missing) / required + 0.5)
+    if judge_score == 0:
+        score = 0
+    result["score"] = score
+    result["score_check"] = {
+        "judge_score": judge_score,
+        "required_points": required,
+        "missing_counted": missing,
+        "score": score,
+    }
+    return result
+
+
 def _wrap(case, latency, status, result, answer=None):
     return {
         "timestamp": time.time(),
@@ -207,7 +240,8 @@ def run_single_case(case, provider, student_answer):
             "raw_output": response,
         }, answer=student_answer)
 
-    return _wrap(case, latency, STATUS_GRADED, apply_rubric_check(case, parsed), answer=student_answer)
+    checked = apply_points_score(case, apply_rubric_check(case, parsed))
+    return _wrap(case, latency, STATUS_GRADED, checked, answer=student_answer)
 
 
 def provider_label(provider):

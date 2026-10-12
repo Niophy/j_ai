@@ -1,0 +1,142 @@
+{
+  "a:LOG_001": {
+    "source_run": "run_1791797103876153046.json",
+    "v2_score": 8,
+    "v21_score": 10,
+    "verdict": "pass",
+    "predicted": "pass",
+    "match": true,
+    "score_check": {
+      "judge_score": 8,
+      "required_points": 5,
+      "missing_counted": 0,
+      "score": 10
+    }
+  },
+  "a:PROT_001": {
+    "source_run": "run_1791797172258707968.json",
+    "v2_score": 9,
+    "v21_score": 10,
+    "verdict": "pass",
+    "predicted": "pass",
+    "match": true,
+    "score_check": {
+      "judge_score": 9,
+      "required_points": 2,
+      "missing_counted": 0,
+      "score": 10
+    }
+  },
+  "a:REQ_001": {
+    "source_run": "run_1791796909710670945.json",
+    "v2_score": 9,
+    "v21_score": 10,
+    "verdict": "pass",
+    "predicted": "pass",
+    "match": true,
+    "score_check": {
+      "judge_score": 9,
+      "required_points": 5,
+      "missing_counted": 0,
+      "score": 10
+    }
+  },
+  "a:REQ_002": {
+    "source_run": "run_1791797004603802111.json",
+    "v2_score": 3,
+    "v21_score": 4,
+    "verdict": "fail",
+    "predicted": "fail",
+    "match": true,
+    "score_check": {
+      "judge_score": 3,
+      "required_points": 5,
+      "missing_counted": 3,
+      "score": 4
+    }
+  },
+  "a:SEC_001": {
+    "source_run": "run_1791797271908210044.json",
+    "v2_score": 2,
+    "v21_score": 2,
+    "verdict": "fail",
+    "predicted": "fail",
+    "match": true,
+    "score_check": {
+      "judge_score": 2,
+      "required_points": 5,
+      "missing_counted": 4,
+      "score": 2
+    }
+  },
+  "b:LOG_001": {
+    "source_run": "run_1791797580119874428.json",
+    "v2_score": 1,
+    "v21_score": 2,
+    "verdict": "fail",
+    "predicted": "fail",
+    "match": true,
+    "score_check": {
+      "judge_score": 1,
+      "required_points": 5,
+      "missing_counted": 4,
+      "score": 2
+    }
+  },
+  "b:PROT_001": {
+    "source_run": "run_1791797665122887578.json",
+    "v2_score": 2,
+    "v21_score": 0,
+    "verdict": "fail",
+    "predicted": "fail",
+    "match": true,
+    "score_check": {
+      "judge_score": 2,
+      "required_points": 2,
+      "missing_counted": 2,
+      "score": 0
+    }
+  },
+  "b:REQ_001": {
+    "source_run": "run_1791797368965769542.json",
+    "v2_score": 3,
+    "v21_score": 6,
+    "verdict": "fail",
+    "predicted": "fail",
+    "match": true,
+    "score_check": {
+      "judge_score": 3,
+      "required_points": 5,
+      "missing_counted": 2,
+      "score": 6
+    }
+  },
+  "b:REQ_002": {
+    "source_run": "run_1791797487483106857.json",
+    "v2_score": 1,
+    "v21_score": 0,
+    "verdict": "fail",
+    "predicted": "fail",
+    "match": true,
+    "score_check": {
+      "judge_score": 1,
+      "required_points": 5,
+      "missing_counted": 5,
+      "score": 0
+    }
+  },
+  "b:SEC_001": {
+    "source_run": "run_1791797734533235847.json",
+    "v2_score": 1,
+    "v21_score": 0,
+    "verdict": "fail",
+    "predicted": "fail",
+    "match": true,
+    "score_check": {
+      "judge_score": 1,
+      "required_points": 5,
+      "missing_counted": 5,
+      "score": 0
+    }
+  }
+}

@@ -130,6 +130,51 @@ class Templates(unittest.TestCase):
         self.assertEqual(out["template"], cases[0]["prompt_template"])
 
 
+class PointsScore(unittest.TestCase):
+    """v2.1: the score comes from the marking scheme, the judge's own score is kept beside it."""
+
+    CASE = {"id": "T", "expected": {"must_include": ["a", "b", "c", "d", "e"], "min_points": 5}}
+
+    def setUp(self):
+        os.environ.pop("JAI_SCORE_FROM_POINTS", None)
+
+    def tearDown(self):
+        os.environ.pop("JAI_SCORE_FROM_POINTS", None)
+
+    def score(self, result, case=None):
+        return runner.apply_points_score(case or self.CASE, dict(result))
+
+    def test_same_points_same_score_whatever_the_judge_said(self):
+        polished = self.score({"score": 9, "verdict": "pass", "missing_points": []})
+        rough = self.score({"score": 7, "verdict": "pass", "missing_points": []})
+        self.assertEqual((polished["score"], rough["score"]), (10, 10))
+        self.assertEqual(rough["score_check"]["judge_score"], 7)
+
+    def test_partial_coverage_and_all_missing_lists_count(self):
+        r = self.score({"score": 5, "verdict": "fail", "missing_points": ["a"], "missing_controls": ["b", "c"]})
+        self.assertEqual((r["score"], r["score_check"]["missing_counted"]), (4, 3))
+
+    def test_extra_missing_items_are_capped_at_the_scheme(self):
+        r = self.score({"score": 1, "verdict": "fail", "missing_points": list("abcdefg")})
+        self.assertEqual((r["score"], r["score_check"]["missing_counted"]), (0, 5))
+
+    def test_judge_zero_is_kept_for_no_substantive_attempt(self):
+        self.assertEqual(self.score({"score": 0, "verdict": "fail"})["score"], 0)
+
+    def test_rounds_half_up(self):
+        three = {"id": "T", "expected": {"must_include": ["a", "b", "c"]}}
+        self.assertEqual(self.score({"score": 6, "verdict": "pass", "missing_points": ["a"]}, three)["score"], 7)
+
+    def test_no_scheme_or_switched_off_leaves_the_judge_score(self):
+        self.assertEqual(self.score({"score": 6, "verdict": "pass"}, {"id": "adhoc"}), {"score": 6, "verdict": "pass"})
+        os.environ["JAI_SCORE_FROM_POINTS"] = "0"
+        self.assertNotIn("score_check", self.score({"score": 6, "verdict": "pass"}))
+
+    def test_verdict_is_never_touched(self):
+        r = self.score({"score": 2, "verdict": "fail", "missing_points": []})
+        self.assertEqual((r["score"], r["verdict"]), (10, "fail"))
+
+
 class FakeJudge:
     model = "fake-judge"
     think = None

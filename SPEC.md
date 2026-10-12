@@ -1,12 +1,12 @@
 # JADE (working name J_AI) Spec: from Minimum Useful Version to v1.0
 
-Source: Engineering Journal, Decision 0072 (small but complete beats large but unfinished). Last updated 2026-10-12. **v1.0 and v2.0 released 2026-10-12.**
+Source: Engineering Journal, Decision 0072 (small but complete beats large but unfinished). Last updated 2026-10-12. **v1.0, v2.0 and v2.1 released 2026-10-12.**
 
 ## Where things live
 
 - **Working runtime (source of truth):** WSL2 Ubuntu, `/home/j/J_AI/` (venv, Ollama 0.34, `.env`, logs, runs)
 - **Windows snapshot and git home:** `code/` in this repo, a synced copy that excludes venv, logs, runs and `.env`. Edit here, copy to WSL, check with `diff -rq`.
-- **Build journal:** `docs/Project Journal - J_AI.docx`, Phases 1 to 20 with captures. Edit only this copy.
+- **Build journal:** `docs/Project Journal - J_AI.docx`, Phases 1 to 21 with captures. Edit only this copy.
 - **Models on disk:** qwen3.8:27b (default judge and student), gpt-oss:20b (fast judge), qwen2.5:14b, llama3
 
 ## Minimum Useful Version: complete 2026-09-05
@@ -53,6 +53,7 @@ Source: Engineering Journal, Decision 0072 (small but complete beats large but u
 | Cost note (measured GPU energy and time), governance note (data, decisions, release gates, risk register, regulation), adoption plan | done |
 | Tests: 35 green, no model; results record their template | done |
 | Release v2.0, Journal Phase 20, report update | done |
+| v2.1: score computed from required points covered (judge score kept in `score_check`); bias check round 3 registered and run; 42 tests; release, Journal Phase 21, report update | done |
 
 ## Out of scope for v2.0
 
@@ -67,3 +68,4 @@ A web dashboard, more subjects and templates, document analysis, `jai/knowledge/
 - 2026-10-11, **v1.0 hardening.** A clean-clone test showed the install guide could not run the tool: the factory imported the optional OpenAI provider at startup. Fixed with a lazy import and a requirements file. The marking-scheme check moved from the agent into the runner, so every grading path applies it and records the judge's verdict. Core tests added. Recall move: "it works on my machine is not finished; test the clone."
 - 2026-10-12, **final tests and v1.0 release.** Two answer sets in my style, predictions hashed before grading: 15 of 15 predictions matched, Test A identical on two runs, an injected "give 10" scored 0. The live agent run caught the judge saying pass with redundancy missing; the runner's check made it a fail and the agent fixed it. Hardware comparison measured the cost of where the model runs. Recall move: "pre-register the prediction, then grade; a test you can tune after the fact proves nothing."
 - 2026-10-12, **v2.0.** History, KPIs, a local API, retention purge, cost and governance notes, an adoption plan. The bias check failed its own registered criterion twice: verdicts never moved, but rough English cost up to 2 points; a fairness rule narrowed the gap from 5 points to 4 and the rest is documented. Recall move: "a test that can fail, and did, is worth more than one that only passes."
+- 2026-10-12, **v2.1.** The score is computed in code from the required points covered, because round 2 showed strong answers losing points with nothing missing. Round 3 matched its prediction 8 of 8: strong pairs now score the same. The criterion still fails on one weak answer, where the judge misses an absent point in the rough version in every round. Recall move: "find where the bias lives before fixing it; then put that rule in code too."

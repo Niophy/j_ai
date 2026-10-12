@@ -154,7 +154,9 @@ Every result record carries exactly one `status`:
 
 The verdict itself contains `score` (0 to 10), `verdict` (pass or fail), and template-specific detail lists such as `missing_points`, `design_flaws`, or `incorrect_claims`.
 
-**Marking-scheme check.** For cases with `min_points`, the runner holds the verdict to the scheme in code. If the judge says pass but lists more required points missing than `min_points` allows, the verdict becomes fail. The record keeps the judge's own verdict and the counts in `rubric_check`, and the report prints a line for every override. The check only ever makes grading stricter, never turns a fail into a pass. `JAI_RUBRIC_CHECK=0` switches it off. The scoreboard counts each status separately, averages scores over gradeable rows, and averages latency over model-graded rows only. The report renders all of it per case: the question, the submitted answer quoted back, and the examiner's findings.
+**Marking-scheme check.** For cases with `min_points`, the runner holds the verdict to the scheme in code. If the judge says pass but lists more required points missing than `min_points` allows, the verdict becomes fail. The record keeps the judge's own verdict and the counts in `rubric_check`, and the report prints a line for every override. The check only ever makes grading stricter, never turns a fail into a pass. `JAI_RUBRIC_CHECK=0` switches it off.
+
+**Points-based score (v2.1).** For cases with a marking scheme, the score is computed in code as 10 x required points covered / required points, rounded half up, so the writing cannot move it. The judge's own score is kept in `score_check`, a judge score of 0 stays 0 (no substantive attempt), and the verdict is never changed. A score therefore means coverage: a failing answer can score up to 8 when it misses a point the scheme requires. `JAI_SCORE_FROM_POINTS=0` switches it off. The scoreboard counts each status separately, averages scores over gradeable rows, and averages latency over model-graded rows only. The report renders all of it per case: the question, the submitted answer quoted back, and the examiner's findings.
 
 ## Make it yours
 
