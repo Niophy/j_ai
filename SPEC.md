@@ -39,7 +39,7 @@ Source: Engineering Journal, Decision 0072 (small but complete beats large but u
 | Final tests, pre-registered: Test A 3 pass / 2 fail and Test B 0 pass, 15 of 15 predictions matched, Test A identical on two runs; prompt injection resisted; live agent passed with the marking-scheme check firing on its first submission ([docs/final_tests](docs/final_tests/)) | done 2026-10-12 |
 | Hardware comparison: one grading on GPU, mixed GPU + CPU/RAM, and CPU + RAM only | done 2026-10-12 |
 | Close-out: tag v1.0 on GitHub, Journal Phase 18, CV bullet | done 2026-10-12 |
-| Practice loop: Jaber re-answers REQ_002 and LOG_001 framework-first and regrades | moved to after release (Jaber's decision, 2026-10-12) |
+| Practice loop: re-answer two cases and regrade | closed 2026-10-12, Jaber's decision: the two pre-registered final tests stand in for it |
 
 ## Out of scope for v1.0 (v2 material)
 

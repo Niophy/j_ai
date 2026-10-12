@@ -197,7 +197,7 @@ JADE changed how I see AI: before, a technology that generates responses; after,
 Development began in **December 2025** with the Linux environment (Phase 1). Ollama and the first model followed in February 2026 (Phase 3), then the provider architecture and eval templates (Phases 4 to 8; see `docs/Project Journal - J_AI.docx` with build screenshots). The code was imported to git on 2026-09-02, which is why commit dates are later than the work. Minimum Useful Version on 2026-09-05, student agent and model bake-off on 2026-09-10, v1.0 hardening on 2026-10-11, final tests and **v1.0 release on 2026-10-12**. The journal covers all of it in 19 phases. Throughout that time the project was named J_AI; it became **JADE** on 2026-10-12 with v1.0.1.
 
 ## Current Status
-**v1.0 released** (2026-10-12). Every item in the [SPEC.md](SPEC.md) v1.0 checklist is done, confirmed by pre-registered final tests. The practice loop (re-answering two cases framework-first and regrading) is the first task after release.
+**v1.0 released** (2026-10-12). Every item in the [SPEC.md](SPEC.md) v1.0 checklist is done, confirmed by pre-registered final tests. The planned practice loop (re-answering two cases and regrading) is closed: the two pre-registered final tests stand in for it.
 
 What runs, all local in WSL2: input guard, CLI, batch evaluation, scoreboard, markdown reports, schema-enforced verdicts with a marking-scheme check, judge and student roles, thinking control, and the student agent. qwen3.8:27b is the default judge. 22 unit tests run without a model.
 
