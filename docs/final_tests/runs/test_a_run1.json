@@ -1,0 +1,166 @@
+{
+  "course": "ITE 402",
+  "version": "final_test_a",
+  "provider": "OllamaProvider:qwen3.8:27b:think=low",
+  "results": [
+    {
+      "timestamp": 1791785140.602737,
+      "case_id": "REQ_001",
+      "type": "requirements_analysis",
+      "status": "graded",
+      "latency_seconds": 119.6570303440094,
+      "answer": "A clinic with 1 main site and 1 remote branch, 30 staff growing to 80 in 2 years, limited budget, so I'll separate the goals first. Business goals: keep patient care running with minimal downtime, let both sites share patient records so a patient can visit either one, and grow to 80 staff without rebuilding everything. Technical goals: reliable internet at both sites (a main ISP plus a cheaper backup link so one failure doesn't stop the clinic), a site-to-site VPN between main and branch, and a network that keeps clinical traffic and admin/guest traffic apart. Constraints: the budget is limited so I'd pick affordable business-grade equipment over enterprise, the IT staff is probably small or outsourced so it has to be simple to manage, and the branch only works normal weekday hours. Growth: size the switches and the IP plan for 80 users from day one (spare ports and room in the subnets) so going from 30 to 80 is adding devices not redesigning. Security: patient records need encryption in transit (the VPN) and at rest, a firewall at each site, user accounts with MFA, and access by role so reception doesn't see what doctors see. I won't assume a specific vendor or price since the scenario doesn't give them.",
+      "result": {
+        "score": 9,
+        "verdict": "pass",
+        "missing_points": [],
+        "technical_errors": [],
+        "strengths": [
+          "Clearly and explicitly separated business goals from technical goals with distinct labels",
+          "Identified multiple constraints including budget, staffing, and branch operating hours",
+          "Scalability addressed with a concrete strategy: size switches and IP plan for 80 users from day one",
+          "Security covered comprehensively: encryption in transit and at rest, firewalls, MFA, and role-based access control",
+          "Avoided inventing vendor names or prices, staying faithful to the scenario's information"
+        ],
+        "rubric_check": {
+          "judge_verdict": "pass",
+          "required_points": 5,
+          "min_points": 5,
+          "missing_listed": 0,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    },
+    {
+      "timestamp": 1791785214.2404735,
+      "case_id": "REQ_002",
+      "type": "requirements_analysis",
+      "status": "graded",
+      "latency_seconds": 73.63727951049805,
+      "answer": "A university building with 6 labs, 35 PCs each, 12 classrooms, WiFi, some IoT sensors, online exams must not drop and a small IT staff. So the main thing is availability, the exams can't drop, so we need backup, a second internet link and backup power (UPS) for the lab rooms so if something fails the exam keeps going. WiFi has to cover all 12 classrooms so we put access points in each classroom, maybe 1 or 2 depending on the size of the room, and the students and staff connect to it. The 6 labs need 210 PCs in total so we need enough switches for all of them, 35 each. The IoT sensors could connect to the WiFi too.",
+      "result": {
+        "score": 2,
+        "verdict": "fail",
+        "missing_points": [
+          "traffic types",
+          "management",
+          "segmentation"
+        ],
+        "technical_errors": [],
+        "strengths": [
+          "Correctly identified availability as the primary design driver for exam continuity",
+          "Proposed a second internet link for redundancy",
+          "Proposed UPS backup power for lab rooms",
+          "Addressed wireless coverage by placing access points in each classroom"
+        ],
+        "rubric_check": {
+          "judge_verdict": "fail",
+          "required_points": 5,
+          "min_points": 5,
+          "missing_listed": 3,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    },
+    {
+      "timestamp": 1791785293.2774134,
+      "case_id": "LOG_001",
+      "type": "logical_design",
+      "status": "graded",
+      "latency_seconds": 79.03639054298401,
+      "answer": "A mid size company with HR, Finance and Engineering, Engineering has heavy internal traffic and needs lab isolation, Finance needs strict access. So I'd use a hierarchical design with 3 layers: access layer switches where the users plug in, a distribution layer that routes between departments and applies the policies, and a core layer that is just fast switching. Segmentation: each department gets its own VLAN (HR, Finance, Engineering) and the Engineering lab gets a separate VLAN so its traffic stays isolated from production, plus a management VLAN for the devices. Addressing plan: a subnet per VLAN from 10.x.x.x private range, for example HR 10.10.10.0/24, Finance 10.20.20.0/24, Engineering a bigger /23 because it has more devices and traffic, Lab 10.40.40.0/24, management 10.99.0.0/24. Routing approach: inter-VLAN routing at the distribution layer on layer 3 switches, with ACLs so Finance only accepts the traffic it needs (strict access) and the lab can't reach the other departments, and OSPF between the distribution and core if the company grows to more sites. Redundancy: two distribution switches with HSRP/VRRP for the default gateway, dual uplinks from the access switches, and link aggregation on the core links so one failure doesn't take a department down.",
+      "result": {
+        "score": 8,
+        "verdict": "pass",
+        "missing_points": [],
+        "design_flaws": [
+          "OSPF is mentioned only as a future consideration ('if the company grows to more sites'), which is reasonable but leaves the single-site routing model slightly under-specified — no mention of whether static routes or a default route would be used at the core for a single-site deployment.",
+          "The strict access control for Finance is addressed via ACLs on L3 switches, but no mention of a dedicated firewall or security appliance between Finance and other VLANs, which would be more robust for 'strict access control' in a mid-size company."
+        ],
+        "strengths": [
+          "Clear three-tier hierarchy (access, distribution, core) with distinct roles for each layer.",
+          "Segmentation is well-justified: separate VLANs per department, a dedicated lab VLAN for isolation, and a management VLAN — all tied back to the scenario requirements.",
+          "Addressing plan is structured, uses private ranges, and the /23 for Engineering is explicitly justified by higher device count and traffic.",
+          "Routing approach is logical: inter-VLAN routing at distribution with ACLs enforcing the Finance and lab isolation requirements.",
+          "Redundancy is multi-layered: HSRP/VRRP for gateway, dual uplinks from access, and link aggregation on core links."
+        ],
+        "rubric_check": {
+          "judge_verdict": "pass",
+          "required_points": 5,
+          "min_points": 5,
+          "missing_listed": 0,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    },
+    {
+      "timestamp": 1791785350.5658386,
+      "case_id": "PROT_001",
+      "type": "protocol_selection",
+      "status": "graded",
+      "latency_seconds": 57.287593126297,
+      "answer": "A campus with multiple buildings and future growth, so I'd choose OSPF. OSPF is a link state protocol, so every router has a full map of the network and calculates the best path itself, which means it converges fast when a link goes down compared to distance vector protocols like RIP. It's scalable because you can split the campus into areas (area 0 as the backbone and an area per building or group of buildings), so routing updates stay inside an area and adding a new building later is just adding a new area. It's also an open standard so it works with any vendor, which matters if the campus buys different equipment over the years.",
+      "result": {
+        "score": 9,
+        "verdict": "pass",
+        "incorrect_claims": [],
+        "missing_reasoning": [],
+        "strengths": [
+          "Correctly identifies OSPF and explains it as a link state protocol",
+          "Addresses scalability through multi-area design (area 0 backbone + per-building areas)",
+          "Mentions fast convergence compared to distance vector protocols like RIP",
+          "Notes vendor independence as an open standard, relevant for mixed-equipment campuses",
+          "Explains that adding a new building is simply adding a new area, directly addressing future growth"
+        ],
+        "rubric_check": {
+          "judge_verdict": "pass",
+          "required_points": 2,
+          "min_points": 3,
+          "missing_listed": 0,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    },
+    {
+      "timestamp": 1791785408.3867378,
+      "case_id": "SEC_001",
+      "type": "security_strategy",
+      "status": "graded",
+      "latency_seconds": 57.82033681869507,
+      "answer": "A company with remote work, internal apps and a public website. So for the perimeter I'd put a firewall between the internet and the company network to block what shouldn't come in, and the remote workers connect through a VPN so their connection is encrypted when they reach the internal apps from home. The website should also have HTTPS. Staff should use strong passwords and get training so they don't click phishing emails.",
+      "result": {
+        "score": 2,
+        "verdict": "fail",
+        "missing_controls": [
+          "segmentation",
+          "least privilege",
+          "monitoring",
+          "public facing isolation"
+        ],
+        "risk_gaps": [
+          "No network segmentation between internal apps and the public website is described; a single firewall is mentioned but no internal zone separation",
+          "No least privilege or access control model is referenced for internal app access",
+          "No monitoring, logging, or alerting is mentioned for detecting intrusions or anomalies",
+          "The public website is not isolated from internal infrastructure (e.g., DMZ, separate hosting, WAF)"
+        ],
+        "strengths": [
+          "Remote access is protected via VPN with encryption",
+          "HTTPS is specified for the public website",
+          "Phishing awareness training is mentioned as a human-layer control"
+        ],
+        "rubric_check": {
+          "judge_verdict": "fail",
+          "required_points": 5,
+          "min_points": 5,
+          "missing_listed": 4,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    }
+  ]
+}

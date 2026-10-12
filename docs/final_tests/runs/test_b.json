@@ -1,0 +1,182 @@
+{
+  "course": "ITE 402",
+  "version": "final_test_b",
+  "provider": "OllamaProvider:qwen3.8:27b:think=low",
+  "results": [
+    {
+      "timestamp": 1791786008.1501398,
+      "case_id": "REQ_001",
+      "type": "requirements_analysis",
+      "status": "graded",
+      "latency_seconds": 80.04250073432922,
+      "answer": "A clinic with a main and a branch and 30 staff, so first the clinic needs good internet, maybe 200mbp at the main and 100mbp at the branch, and a computer for every doctor and receptionist. The records should be on a system both sites can open so the patient doesn't have to repeat everything if they go to the other one. If the internet goes down they could use mobile data from a phone until it comes back. When they hire more people they can just buy more computers.",
+      "result": {
+        "score": 3,
+        "verdict": "fail",
+        "missing_points": [
+          "constraints",
+          "security"
+        ],
+        "technical_errors": [
+          "Suggesting mobile data from a phone as a failover for a clinic handling patient records is not a viable or secure continuity solution (\"they could use mobile data from a phone until it comes back\")",
+          "Treating growth as simply purchasing more computers ignores network capacity, server scalability, licensing, and infrastructure planning (\"they can just buy more computers\")"
+        ],
+        "strengths": [
+          "Identified the need for a shared records system accessible from both sites",
+          "Specified bandwidth for both the main site and branch",
+          "Acknowledged future growth, even if superficially"
+        ],
+        "rubric_check": {
+          "judge_verdict": "fail",
+          "required_points": 5,
+          "min_points": 5,
+          "missing_listed": 2,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    },
+    {
+      "timestamp": 1791786078.312307,
+      "case_id": "REQ_002",
+      "type": "requirements_analysis",
+      "status": "graded",
+      "latency_seconds": 70.1615662574768,
+      "answer": "A university building that has 6 labs with 35 PCs each and 12 classrooms, so 210 PCs in the labs, each lab should have a teacher PC and a printer too. The classrooms need a projector and a smart board each and the teacher connects the laptop to it. For the online exams the students should close all other programs and the teacher watches them so nobody cheats. The IT staff is small so they should hire 1 or 2 more people to help.",
+      "result": {
+        "score": 1,
+        "verdict": "fail",
+        "missing_points": [
+          "traffic types",
+          "availability",
+          "wireless coverage",
+          "segmentation"
+        ],
+        "technical_errors": [
+          "Treating cheating prevention as a network design solution: 'the students should close all other programs and the teacher watches them so nobody cheats'"
+        ],
+        "strengths": [
+          "Acknowledged the small IT staff constraint and proposed a mitigation (hiring)",
+          "Correctly calculated total lab PCs (6 × 35 = 210)"
+        ],
+        "rubric_check": {
+          "judge_verdict": "fail",
+          "required_points": 5,
+          "min_points": 5,
+          "missing_listed": 4,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    },
+    {
+      "timestamp": 1791786144.7956645,
+      "case_id": "LOG_001",
+      "type": "logical_design",
+      "status": "graded",
+      "latency_seconds": 66.48274540901184,
+      "answer": "A company with 3 departments HR, Finance and Engineering, so each one should have their own room and their own shared folder on the server. Engineering works with big files so they need faster computers and a bigger hard drive on the server. Finance has sensitive data so only Finance people get the password to the Finance folder, and the manager approves who gets added. HR keeps the employees files and does the hiring so they mostly need email and the HR system.",
+      "result": {
+        "score": 1,
+        "verdict": "fail",
+        "missing_points": [
+          "hierarchical design",
+          "segmentation",
+          "addressing plan",
+          "routing approach",
+          "redundancy"
+        ],
+        "design_flaws": [
+          "Confuses physical separation with logical network segmentation: 'each one should have their own room'",
+          "Proposes a single shared password as an access control mechanism rather than proper authentication/authorization: 'only Finance people get the password to the Finance folder'",
+          "Focuses on hardware sizing (computers, hard drives) rather than any network design element: 'they need faster computers and a bigger hard drive on the server'",
+          "No mention of VLANs, subnets, ACLs, routing, or any logical network construct"
+        ],
+        "strengths": [
+          "Attempts to differentiate departmental needs (Engineering heavy traffic, Finance sensitive data, HR administrative)",
+          "Recognizes that Finance requires restricted access, even though the proposed mechanism is incorrect"
+        ],
+        "rubric_check": {
+          "judge_verdict": "fail",
+          "required_points": 5,
+          "min_points": 5,
+          "missing_listed": 5,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    },
+    {
+      "timestamp": 1791786212.3360107,
+      "case_id": "PROT_001",
+      "type": "protocol_selection",
+      "status": "graded",
+      "latency_seconds": 67.53966426849365,
+      "answer": "A campus with multiple buildings, so I'd go with RIP because it's simple to set up and the IT staff won't need much training, you just enable it on the routers and they share their routes with each other automatically. If the campus grows they can add more routers and turn RIP on there too.",
+      "result": {
+        "score": 1,
+        "verdict": "fail",
+        "incorrect_claims": [
+          "RIP is suitable for a campus with multiple buildings and future growth — RIP has a maximum hop count of 15 and slow convergence, making it unsuitable for multi-building campus networks with growth plans ('If the campus grows they can add more routers and turn RIP on there too')"
+        ],
+        "missing_reasoning": [
+          "No mention of OSPF or link-state routing as a more appropriate choice",
+          "No mention of EIGRP or fast convergence as a requirement for the scenario",
+          "No proper discussion of scalability limitations (RIP hop count cap of 15, slow convergence under load)",
+          "No comparison of RIP against more suitable protocols for the given scenario"
+        ],
+        "strengths": [
+          "Made a substantive attempt at justifying a protocol choice",
+          "Acknowledged the growth requirement, even if the conclusion was incorrect"
+        ],
+        "rubric_check": {
+          "judge_verdict": "fail",
+          "required_points": 2,
+          "min_points": 3,
+          "missing_listed": 4,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    },
+    {
+      "timestamp": 1791786270.9581816,
+      "case_id": "SEC_001",
+      "type": "security_strategy",
+      "status": "graded",
+      "latency_seconds": 58.62147903442383,
+      "answer": "A company with remote work and a website, so everyone should have antivirus on their laptop and keep it updated. The remote workers should not use public WiFi in cafes. Passwords should be changed every month and written somewhere safe. The website should be backed up every week in case it gets hacked so they can restore it.",
+      "result": {
+        "score": 1,
+        "verdict": "fail",
+        "missing_controls": [
+          "segmentation",
+          "least privilege",
+          "remote access protection (no VPN, MFA, or technical remote access controls mentioned)",
+          "monitoring",
+          "public facing isolation (no DMZ, WAF, or separation of public website from internal systems)"
+        ],
+        "risk_gaps": [
+          "No network segmentation between internal apps and public website",
+          "No mention of VPN or MFA for remote access",
+          "No monitoring, logging, or alerting strategy",
+          "No isolation of the public-facing website from internal infrastructure",
+          "No least privilege or access control model"
+        ],
+        "strengths": [
+          "Acknowledges the remote work context and attempts to address it",
+          "Mentions endpoint antivirus as a basic hygiene measure",
+          "Considers backup/recovery for the website"
+        ],
+        "rubric_check": {
+          "judge_verdict": "fail",
+          "required_points": 5,
+          "min_points": 5,
+          "missing_listed": 5,
+          "allowed_missing": 0,
+          "overridden": false
+        }
+      }
+    }
+  ]
+}
