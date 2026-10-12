@@ -1,6 +1,6 @@
-# J_AI Usage Guide
+# JADE Usage Guide
 
-J_AI is a local-first AI evaluation engine: you give it exam-style questions with marking schemes, a student gives it answers, and a local language model grades them into validated JSON verdicts, scoreboards, and readable markdown reports. It was built to answer one question: can an AI evaluate technical work as consistently as an experienced examiner? Everything below runs offline on your own machine.
+JADE (Jaber's Assessment and Decision Engine, working name J_AI) is a fully offline AI evaluation engine: you give it exam-style questions with marking schemes, a student gives it answers, and a local language model grades them into validated JSON verdicts, scoreboards, and readable markdown reports. It was built to answer one question: can an AI evaluate technical work as consistently as an experienced examiner? Everything below runs offline on your own machine.
 
 ## Requirements
 
@@ -12,8 +12,8 @@ J_AI is a local-first AI evaluation engine: you give it exam-style questions wit
 ## Install
 
 ```bash
-git clone https://github.com/Niophy/j_ai.git
-cd j_ai/code
+git clone https://github.com/Niophy/jade.git
+cd jade/code
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

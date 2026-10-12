@@ -1,6 +1,6 @@
 # J_AI — standing instructions for Claude
 
-J_AI is Jaber's flagship AI project: a structured evaluation engine (templates in → validated JSON verdicts out), local-first via Ollama. If this folder is opened as its own chat, this file is the brain — read [SPEC.md](SPEC.md) (state + build order) and [README.md](README.md) first.
+J_AI is Jaber's flagship AI project, public name **JADE** (Jaber's Assessment and Decision Engine): a structured evaluation engine (templates in, validated JSON verdicts out), fully offline via Ollama. It is his independent work: the five cases are original scenarios, never describe them as ITE 402 or any university course. If this folder is opened as its own chat, this file is the brain — read [SPEC.md](SPEC.md) (state + build order) and [README.md](README.md) first.
 
 ## On session start
 1. Read `SPEC.md`'s "Recall triggers" section and the newest `G:\AI\PROGRESS.md` entries; brief Jaber on what exists and what's queued.

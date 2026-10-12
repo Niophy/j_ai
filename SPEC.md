@@ -1,4 +1,4 @@
-# J_AI Spec: from Minimum Useful Version to v1.0
+# JADE (working name J_AI) Spec: from Minimum Useful Version to v1.0
 
 Source: Engineering Journal, Decision 0072 (small but complete beats large but unfinished). Last updated 2026-10-12. **v1.0 released 2026-10-12.**
 
@@ -48,7 +48,7 @@ Evaluation history and a dashboard, more subjects and templates, document analys
 ## Recall triggers (one line per session)
 
 - Phases 1 to 8: documented in the project journal.
-- 2026-09-03, **first end-to-end run.** Jaber answered 3 of the 5 ITE402 cases from memory. llama3 graded all three 4/10 with the same finding: answers were operational, the examiner wanted the engineering framework. Recall move: "answer the framework, not the story."
+- 2026-09-03, **first end-to-end run.** Jaber answered 3 of the 5 network-design cases from memory. llama3 graded all three 4/10 with the same finding: answers were operational, the examiner wanted the engineering framework. Recall move: "answer the framework, not the story."
 - 2026-09-10, **student agent.** The model sits the exam and the examiner is its only tool. Guardrails: step cap, submission cap, nudge cap, unknown-tool refusal, only a graded submission counts. It never sees the expected block. Found on day one: the judge passed answers while listing required points missing. Recall move: "the judge's pass is not the rubric's pass."
 - 2026-09-10, **bake-off and architecture change.** Roles, schema-enforced verdicts, thinking passthrough. qwen2.5 0/5 with 16 of 17 verdicts inconsistent; gpt-oss 5/5 but straight tens; qwen3.8 5/5, failed a strong first draft and caught arithmetic and terminology errors with quotes. Decision: qwen3.8:27b for both roles. Recall move: "never trust a model grading itself; cross-grade."
 - 2026-10-11, **v1.0 hardening.** A clean-clone test showed the install guide could not run the tool: the factory imported the optional OpenAI provider at startup. Fixed with a lazy import and a requirements file. The marking-scheme check moved from the agent into the runner, so every grading path applies it and records the judge's verdict. Core tests added. Recall move: "it works on my machine is not finished; test the clone."

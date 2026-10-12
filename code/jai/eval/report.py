@@ -34,7 +34,7 @@ def build_report(run: dict) -> str:
         cases = {}
 
     s = summarize(run)
-    lines = ["# J_AI Evaluation Report", ""]
+    lines = ["# JADE Evaluation Report", ""]
     lines.append(f"Course: {s.get('course')} | Provider: {s.get('provider')} | "
                  f"Generated: {time.strftime('%Y-%m-%d %H:%M')}")
     lines += ["", "## Scoreboard", "", "| Metric | Value |", "|---|---|"]

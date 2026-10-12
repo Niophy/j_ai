@@ -103,7 +103,7 @@ def cmd_evaluate(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="jai", description="J_AI evaluation engine")
+    parser = argparse.ArgumentParser(prog="jai", description="JADE evaluation engine")
     sub = parser.add_subparsers(dest="command", required=True)
 
     ev = sub.add_parser("evaluate", help="grade one answer, print the JSON verdict")

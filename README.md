@@ -1,18 +1,21 @@
-# J_AI
+# JADE
 
-> Structured AI evaluation engine: templates in, validated JSON verdicts out. Local-first via Ollama.
+> **Jaber's Assessment and Decision Engine** (working name J_AI). A fully offline AI evaluation engine: templates and marking schemes in, validated JSON verdicts out, graded by a local model through Ollama.
 
 ## Purpose
 Evaluate technical answers consistently instead of generating conversational responses that grade differently every time.
 
+## How it compares
+JADE is not the first offline AI evaluator. Open-source tools such as [DeepEval](https://medium.com/@jeffreyip54/you-can-now-use-ollama-for-llm-as-a-judge-76f06e3005c9), [promptfoo](https://www.promptfoo.dev/docs/configuration/expected-outputs/model-graded/), [LMAO](https://github.com/ykvit/lmao) and [Open OTK](https://www.sciencedirect.com/science/article/pii/S2352711026005315) already run a local model as a judge, but they evaluate AI output: chatbots, applications and model benchmarks. Tools that grade human answers against a reference, such as [LLM-as-a-Grader](https://arxiv.org/html/2511.10819v1), send each answer to a cloud model. What sets JADE apart is the combination: written answers graded fully offline against each case's own marking scheme, a pass line enforced in code, an adversarial student agent, and pre-registered validation. A search in October 2026 found no released tool that combines all of these.
+
 ## Problem Solved
-LLM evaluations are inconsistent: same answer, different verdicts. J_AI moves the evaluation criteria *outside* the model (Decision 0003): versioned templates define objectives, scoring criteria, and required output; the model interprets answers only within those boundaries.
+LLM evaluations are inconsistent: same answer, different verdicts. JADE moves the evaluation criteria *outside* the model (Decision 0003): versioned templates define objectives, scoring criteria, and required output; the model interprets answers only within those boundaries.
 
 ## Technologies Used
 Python Â· Ollama 0.34 (local LLM: qwen3.8:27b default, gpt-oss:20b fast alternative, qwen2.5:14b, llama3) Â· schema-enforced structured output Â· native tool calling (agent) Â· thinking control Â· versioned prompt templates
 
 ## My Role
-Sole designer and developer. Architecture documented in my Engineering Journal (Decisions 0003â€“0009, 0040â€“0044, 0072).
+Sole designer and developer. JADE is an independent project, not coursework; its five cases are original scenarios written for it. Architecture documented in my Engineering Journal (Decisions 0003â€“0009, 0040â€“0044, 0072).
 
 ## Architecture
 ```
@@ -87,7 +90,7 @@ And the guard doing its job on a blank answer, model never called:
 ```
 
 ## Student agent (the examiner as a tool)
-Added 2026-09-10. The first agent in J_AI turns the pipeline around: the model sits the exam, and the examiner is the only tool it may call. It drafts an answer, submits it through `submit_answer`, reads the verdict, revises on the cited gaps, and repeats until the verdict is pass or five submissions are spent. The agent never sees a case's `expected` block: it learns from feedback, not from the answer key.
+Added 2026-09-10. The first agent in JADE turns the pipeline around: the model sits the exam, and the examiner is the only tool it may call. It drafts an answer, submits it through `submit_answer`, reads the verdict, revises on the cited gaps, and repeats until the verdict is pass or five submissions are spent. The agent never sees a case's `expected` block: it learns from feedback, not from the answer key.
 
 ```bash
 python -m jai.agent.student --case REQ_001            # exit 0 pass, 1 not passed, 2 error
@@ -138,7 +141,7 @@ Before release I wrote two answer sets in my own answering style and registered 
 The agent run showed the v1.0 marking-scheme check working live: on the first submission the judge said pass while listing redundancy as missing, the runner turned it into a fail, the agent added redundancy, and the second submission passed.
 
 ## Hardware: what my GPU can do
-J_AI's default judge (qwen3.8:27b, 17 GB) is bigger than my RTX 5080's 16 GB, so I measured what that costs. One case (LOG_001), the same strong answer, graded four ways; the harness only set Ollama's `num_gpu` and read Ollama's own timing figures ([hardware_test.json](docs/final_tests/hardware_test.json), [harness](docs/final_tests/hw_test.py)).
+JADE's default judge (qwen3.8:27b, 17 GB) is bigger than my RTX 5080's 16 GB, so I measured what that costs. One case (LOG_001), the same strong answer, graded four ways; the harness only set Ollama's `num_gpu` and read Ollama's own timing figures ([hardware_test.json](docs/final_tests/hardware_test.json), [harness](docs/final_tests/hw_test.py)).
 
 | Setup | Model | Processor | Load | Grading | Tokens/s | Score |
 |---|---|---|---|---|---|---|
@@ -154,7 +157,7 @@ J_AI's default judge (qwen3.8:27b, 17 GB) is bigger than my RTX 5080's 16 GB, so
 
 ![Hardware comparison results in WSL](docs/final_tests/screenshots/hardware_results.png)
 
-**GPU capability test on Hugging Face.** Alongside J_AI I tested my RTX 5080 on a different kind of model: I fine-tuned DistilBERT (67M parameters) for positive or negative sentiment on the IMDB movie reviews dataset and published it as [Niophy/distilbert-imdb-sentiment](https://huggingface.co/Niophy/distilbert-imdb-sentiment).
+**GPU capability test on Hugging Face.** Alongside JADE I tested my RTX 5080 on a different kind of model: I fine-tuned DistilBERT (67M parameters) for positive or negative sentiment on the IMDB movie reviews dataset and published it as [Niophy/distilbert-imdb-sentiment](https://huggingface.co/Niophy/distilbert-imdb-sentiment).
 
 | Epoch | Train loss | Test loss | Test accuracy |
 |---|---|---|---|
@@ -168,7 +171,7 @@ Full train split (25,000 reviews), full test split (25,000), 3 epochs, sequence 
 - Evaluation logic lives in templates, not prompts scattered per use (0003).
 - Templates are versioned, never edited in place, for reproducibility (0004).
 - JSON is the only output contract: machine-readable and validatable (0005).
-- Local-first via Ollama: privacy, zero API cost, infrastructure understanding (0006).
+- Fully offline via Ollama: privacy, zero API cost, infrastructure understanding (0006).
 - Never let the judge see an empty paper: answers under 20 characters are refused before the model runs (2026-09-03).
 - The verdict shape is enforced by the runtime through a JSON schema, not requested in the prompt and repaired afterwards (2026-09-10).
 - No model grades itself unchecked: judges are chosen by cross-grading and control answers (2026-09-10).
@@ -186,7 +189,7 @@ Full train split (25,000 reviews), full test split (25,000), 3 epochs, sequence 
 - **Proving the tests were not tuned to pass.** The final tests were pre-registered: answers and predictions hashed before grading, hashes re-checked on every run, nothing edited afterwards.
 
 ## What I Learned
-J_AI changed how I see AI: before, a technology that generates responses; after, **one module inside a larger software architecture**. The model was never the problem, the architecture was. Reliable AI systems need validation, structured outputs, versioning, documentation, and testing around the model, and those surrounding systems often contribute more to quality than the model itself. Prompt engineering matured from "writing better instructions" into **software specification**: a formal contract between the system and the model. And a bigger model is not automatically a better judge. It has to be calibrated on answers whose grade you already know.
+JADE changed how I see AI: before, a technology that generates responses; after, **one module inside a larger software architecture**. The model was never the problem, the architecture was. Reliable AI systems need validation, structured outputs, versioning, documentation, and testing around the model, and those surrounding systems often contribute more to quality than the model itself. Prompt engineering matured from "writing better instructions" into **software specification**: a formal contract between the system and the model. And a bigger model is not automatically a better judge. It has to be calibrated on answers whose grade you already know.
 
 ## Timeline
 Development began in **December 2025** with the Linux environment (Phase 1). Ollama and the first model followed in February 2026 (Phase 3), then the provider architecture and eval templates (Phases 4 to 8; see `docs/Project Journal - J_AI.docx` with build screenshots). The code was imported to git on 2026-09-02, which is why commit dates are later than the work. Minimum Useful Version on 2026-09-05, student agent and model bake-off on 2026-09-10, v1.0 hardening on 2026-10-11, final tests and **v1.0 release on 2026-10-12**. The journal covers all of it in 19 phases.
@@ -202,6 +205,6 @@ Evaluation history across runs Â· more subjects and templates Â· document an
 ## Known Limitations
 - **Speed.** qwen3.8:27b is larger than a 16GB card, so one grading takes 50 to 140 seconds (measured: 82 s mixed, 365 s CPU only). gpt-oss:20b fits fully on the GPU and grades in about a second, with less detailed findings and generous scores.
 - **Missing-point counting is literal.** The marking-scheme check counts everything the judge lists as missing, including the template's own checklist questions, so it errs on the strict side.
-- **Five cases, one course.** The case set is ITE 402 network design only; the engine is general, the content is not yet.
+- **One domain, five cases.** The case set is five original network-design scenarios; the engine is general, the content is not yet.
 - **No history or dashboard.** Each run is a file; comparing runs over time is manual.
 - **Scores run generous on strong answers.** Verdicts are the trustworthy signal; a score of 8 against 9 means little.

@@ -78,7 +78,7 @@ TOOLS = [
     }
 ]
 
-STUDENT_SYSTEM = """You are a student sitting a network design exam (ITE 402).
+STUDENT_SYSTEM = """You are a student sitting a network design exam.
 
 Your task: write the best exam answer you can to the scenario, then submit it
 with the submit_answer tool. The examiner returns a score, a verdict and

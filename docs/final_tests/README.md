@@ -1,4 +1,4 @@
-# J_AI v1.0 final tests (2026-10-12)
+# JADE v1.0 final tests (2026-10-12)
 
 Everything here was produced by the shipped v1.0 code, unchanged, with the default judge: qwen3.8:27b at low thinking effort, marking-scheme check on.
 
@@ -6,7 +6,7 @@ Everything here was produced by the shipped v1.0 code, unchanged, with the defau
 
 1. Two answer sets were written in my answering style before any grading: Test A expected to pass 3 and fail 2, Test B expected to fail all 5.
 2. The answers and the predictions were registered with sha256 hashes at 09:54 ([registered_at.txt](registered_at.txt), [predictions.md](predictions.md)).
-3. Every run re-checked the hashes before grading. Nothing was edited after grading: not the answers, not J_AI.
+3. Every run re-checked the hashes before grading. Nothing was edited after grading: not the answers, not JADE.
 
 ## Results
 
@@ -35,14 +35,16 @@ The student agent passed in two submissions: 6/10 fail, then 8/10 pass, no nudge
 | GPU only | gpt-oss:20b | 100% GPU | 51s | 1s | 165.3 | 10 pass |
 | CPU + RAM only (control) | gpt-oss:20b | 100% CPU | 14s | 27s | 8.5 | 10 pass |
 
-Machine: RTX 5080 16 GB, WSL with 23 GB RAM. The harness ([hw_test.py](hw_test.py)) changes nothing in J_AI: it sets Ollama's `num_gpu` (0 means CPU only) and reads Ollama's own timing figures. Raw numbers: [hardware_test.json](hardware_test.json). Capture: [screenshots/hardware_results.png](screenshots/hardware_results.png).
+Machine: RTX 5080 16 GB, WSL with 23 GB RAM. The harness ([hw_test.py](hw_test.py)) changes nothing in JADE: it sets Ollama's `num_gpu` (0 means CPU only) and reads Ollama's own timing figures. Raw numbers: [hardware_test.json](hardware_test.json). Capture: [screenshots/hardware_results.png](screenshots/hardware_results.png).
+
+**About labels in the evidence files.** The reports, run records and console output here are kept exactly as produced and are not edited after the fact. They show the working name J_AI and a course label, "ITE 402", that the case file carried at the time. That label was a mistake: the five cases are original scenarios written for this project, not material from any university course. The label was removed from the case file after these tests.
 
 ## Files
 
 | File | What it is |
 |---|---|
 | [answers_test_a.json](answers_test_a.json), [answers_test_b.json](answers_test_b.json) | The registered answer sets |
-| [report_test_a.md](report_test_a.md), [report_test_b.md](report_test_b.md) | J_AI's own markdown reports for the runs in my window |
+| [report_test_a.md](report_test_a.md), [report_test_b.md](report_test_b.md) | JADE's own markdown reports for the runs in my window |
 | [runs/](runs/) | Raw run records: Test A twice, Test B, the injection probe |
 | [screenshots/](screenshots/) | One screenshot per graded case and one per scoreboard, taken in my WSL window, plus the hardware results |
 | [agent_check_LOG_001.md](agent_check_LOG_001.md) | Live student agent transcript |
