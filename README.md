@@ -2,6 +2,8 @@
 
 > **Jaber's Assessment and Decision Engine** (working name J_AI). A fully offline AI evaluation engine: templates and marking schemes in, validated JSON verdicts out, graded by a local model through Ollama.
 
+**About the name.** This project was built as **J_AI** from December 2025 through the v1.0 release, and every phase of its history (the build journal, earlier commits, the v1.0 final-test evidence) carries that name. It was renamed **JADE** on 12 October 2026, after v1.0, with release v1.0.1; the repository moved from `Niophy/j_ai` to `Niophy/jade`, and the old address redirects here. J_AI remains the internal name in code paths (`jai/`) and in the journal file.
+
 ## Purpose
 Evaluate technical answers consistently instead of generating conversational responses that grade differently every time.
 
@@ -192,7 +194,7 @@ Full train split (25,000 reviews), full test split (25,000), 3 epochs, sequence 
 JADE changed how I see AI: before, a technology that generates responses; after, **one module inside a larger software architecture**. The model was never the problem, the architecture was. Reliable AI systems need validation, structured outputs, versioning, documentation, and testing around the model, and those surrounding systems often contribute more to quality than the model itself. Prompt engineering matured from "writing better instructions" into **software specification**: a formal contract between the system and the model. And a bigger model is not automatically a better judge. It has to be calibrated on answers whose grade you already know.
 
 ## Timeline
-Development began in **December 2025** with the Linux environment (Phase 1). Ollama and the first model followed in February 2026 (Phase 3), then the provider architecture and eval templates (Phases 4 to 8; see `docs/Project Journal - J_AI.docx` with build screenshots). The code was imported to git on 2026-09-02, which is why commit dates are later than the work. Minimum Useful Version on 2026-09-05, student agent and model bake-off on 2026-09-10, v1.0 hardening on 2026-10-11, final tests and **v1.0 release on 2026-10-12**. The journal covers all of it in 19 phases.
+Development began in **December 2025** with the Linux environment (Phase 1). Ollama and the first model followed in February 2026 (Phase 3), then the provider architecture and eval templates (Phases 4 to 8; see `docs/Project Journal - J_AI.docx` with build screenshots). The code was imported to git on 2026-09-02, which is why commit dates are later than the work. Minimum Useful Version on 2026-09-05, student agent and model bake-off on 2026-09-10, v1.0 hardening on 2026-10-11, final tests and **v1.0 release on 2026-10-12**. The journal covers all of it in 19 phases. Throughout that time the project was named J_AI; it became **JADE** on 2026-10-12 with v1.0.1.
 
 ## Current Status
 **v1.0 released** (2026-10-12). Every item in the [SPEC.md](SPEC.md) v1.0 checklist is done, confirmed by pre-registered final tests. The practice loop (re-answering two cases framework-first and regrading) is the first task after release.
