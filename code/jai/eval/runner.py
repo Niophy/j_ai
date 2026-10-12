@@ -160,6 +160,7 @@ def _wrap(case, latency, status, result, answer=None):
         "timestamp": time.time(),
         "case_id": case["id"],
         "type": case["type"],
+        "template": case.get("prompt_template"),
         "status": status,
         "latency_seconds": latency,
         "answer": answer,
@@ -222,17 +223,26 @@ def provider_label(provider):
     return label
 
 
-def save_run(results, course=None, version=None, provider=None):
-    """Single writer for run files; nanosecond names avoid same-second overwrites."""
+def save_run(results, course=None, version=None, provider=None, student=None, source="run"):
+    """Single writer for run files; nanosecond names avoid same-second overwrites.
+
+    v2: every saved run is also recorded in the evaluation history (jai/history.py),
+    so KPIs can be tracked over time. A history failure never loses the run file.
+    """
     RUNS_DIR.mkdir(exist_ok=True)
     run_file = RUNS_DIR / f"run_{time.time_ns()}.json"
     with open(run_file, "w", encoding="utf-8") as f:
         json.dump(
-            {"course": course, "version": version, "provider": provider, "results": results},
+            {"course": course, "version": version, "provider": provider, "student": student, "results": results},
             f,
             indent=2,
             ensure_ascii=False,
         )
+    try:
+        from jai import history
+        history.record(results, run_id=run_file.stem, source=source, student=student, provider=provider)
+    except Exception as exc:  # the run file is the record of truth; history is derived
+        print(f"WARNING: history not recorded ({exc})", file=sys.stderr)
     return run_file
 
 
@@ -250,6 +260,8 @@ def run_all(student_answers: dict):
         course=data.get("course"),
         version=data.get("version"),
         provider=provider_label(provider),
+        student=os.getenv("JAI_STUDENT_NAME") or None,
+        source="batch",
     )
     print(f"Saved results to {run_file}")
     return results

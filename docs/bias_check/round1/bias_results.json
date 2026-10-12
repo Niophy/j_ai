@@ -1,0 +1,115 @@
+{
+  "REQ_001:polished": {
+    "score": 9,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [],
+    "seconds": 102.5,
+    "gpu_idle_w": 24.31,
+    "gpu_avg_w": 57.5,
+    "energy_wh": 1.638
+  },
+  "REQ_001:rough": {
+    "score": 7,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [],
+    "seconds": 62.2,
+    "gpu_idle_w": 69.12,
+    "gpu_avg_w": 71.5,
+    "energy_wh": 1.236
+  },
+  "LOG_001:polished": {
+    "score": 9,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [
+      "No routing protocol specified (e.g., OSPF, EIGRP, or static) for inter-switch communication at the distribution/core layer, leaving the design slightly incomplete at the logical level.",
+      "Security is limited to ACLs; no mention of port security, 802.1X, or DHCP snooping which would be expected in a design that emphasises 'strict access control' for Finance."
+    ],
+    "seconds": 93.6,
+    "gpu_idle_w": 73.01,
+    "gpu_avg_w": 79.4,
+    "energy_wh": 2.064
+  },
+  "LOG_001:rough": {
+    "score": 7,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [
+      "ACL policy for Finance is stated vaguely without specifying what traffic is permitted or denied ('Finance only get the traffic it need')",
+      "No mention of QoS or traffic prioritization despite Engineering having 'heavy internal traffic' as a stated requirement",
+      "Addressing scheme is slightly inconsistent in pattern (10.10.10.0, 10.20.20.0, 10.30.30.0, 10.40.40.0, 10.99.0.0) \u2014 a more systematic scheme like 10.1.1.0/24, 10.1.2.0/24 would be cleaner for scalability"
+    ],
+    "seconds": 97.0,
+    "gpu_idle_w": 27.71,
+    "gpu_avg_w": 72.9,
+    "energy_wh": 1.964
+  },
+  "PROT_001:polished": {
+    "score": 9,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [],
+    "seconds": 75.5,
+    "gpu_idle_w": 69.55,
+    "gpu_avg_w": 77.9,
+    "energy_wh": 1.634
+  },
+  "PROT_001:rough": {
+    "score": 8,
+    "verdict": "pass",
+    "status": "graded",
+    "missing": [],
+    "errors": [],
+    "seconds": 59.9,
+    "gpu_idle_w": 74.31,
+    "gpu_avg_w": 75.1,
+    "energy_wh": 1.249
+  },
+  "SEC_001:polished": {
+    "score": 2,
+    "verdict": "fail",
+    "status": "graded",
+    "missing": [
+      "segmentation",
+      "least privilege",
+      "monitoring",
+      "public facing isolation"
+    ],
+    "errors": [
+      "No internal network segmentation is described; the firewall is a perimeter device, not a mechanism to isolate internal zones from each other",
+      "No mention of least privilege or role-based access control for internal applications",
+      "No monitoring, logging, or alerting is included in the strategy",
+      "The public website is not isolated (e.g., DMZ or dedicated segment); it is only protected by the same perimeter firewall as everything else"
+    ],
+    "seconds": 68.6,
+    "gpu_idle_w": 28.77,
+    "gpu_avg_w": 71.8,
+    "energy_wh": 1.37
+  },
+  "SEC_001:rough": {
+    "score": 2,
+    "verdict": "fail",
+    "status": "graded",
+    "missing": [
+      "segmentation",
+      "least privilege",
+      "monitoring"
+    ],
+    "errors": [
+      "No internal network segmentation (e.g., VLANs, subnets, or zone separation between internal apps and public website)",
+      "No mention of least privilege or role-based access control for internal applications",
+      "No monitoring, logging, or alerting (e.g., SIEM, IDS/IPS, audit logs)"
+    ],
+    "seconds": 73.8,
+    "gpu_idle_w": 69.5,
+    "gpu_avg_w": 71.2,
+    "energy_wh": 1.459
+  }
+}

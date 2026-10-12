@@ -101,6 +101,32 @@ All guardrails and stop reasons have unit tests with a scripted fake provider, n
 python -m unittest discover -s tests -v
 ```
 
+## Evaluation history, KPIs and the API (v2)
+
+Every saved grading (`--save` on the CLI, batch mode, the API, the student agent) is recorded in a local SQLite file, `runs/history.db`.
+
+```bash
+python cli.py evaluate --case LOG_001 --answer a.txt --save --student sara   # grade, save, record under a learner name
+python cli.py history --limit 20 [--student sara]                           # recent gradings
+python cli.py history --import-runs                                         # backfill from existing run files
+python cli.py history --purge-before 2026-01-01                             # retention: delete older gradings
+python cli.py kpis [--student sara] [--since 2026-10-01] [--labels instructor.json]
+```
+
+The KPIs: median and 90th-percentile turnaround, judge override rate (how often the marking-scheme check overrode a judge "pass"), learning gain per learner and case (last score minus first), provider-error rate, and instructor agreement. Agreement needs instructor verdicts in a JSON file shaped `{"<run_id>:<case_id>": "pass"}`; without one it reports "not measured".
+
+The HTTP API serves the same examiner on this machine only:
+
+```bash
+python -m jai.api.server                     # http://127.0.0.1:8765
+curl -s 127.0.0.1:8765/cases
+curl -s -X POST 127.0.0.1:8765/evaluate -H 'Content-Type: application/json' \
+     -d '{"case_id": "LOG_001", "answer": "...", "student": "sara"}'
+curl -s 127.0.0.1:8765/kpis
+```
+
+`/cases` never returns the marking scheme, `/history` never returns answer text, and gradings run one at a time. Settings: `JAI_HISTORY_DB` (file location), `JAI_HISTORY=0` (no history), `JAI_STUDENT_NAME` (learner name for batch mode), `JAI_API_HOST` and `JAI_API_PORT`. Keep the host on the loopback address unless an authenticating proxy sits in front.
+
 ## Models, roles and thinking
 
 Everything runs through Ollama, and `.env` picks who does what:

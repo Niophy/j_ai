@@ -14,29 +14,31 @@ JADE is not the first offline AI evaluator. Open-source tools such as [DeepEval]
 LLM evaluations are inconsistent: same answer, different verdicts. JADE moves the evaluation criteria *outside* the model (Decision 0003): versioned templates define objectives, scoring criteria, and required output; the model interprets answers only within those boundaries.
 
 ## Technologies Used
-Python Â· Ollama 0.34 (local LLM: qwen3.8:27b default, gpt-oss:20b fast alternative, qwen2.5:14b, llama3) Â· schema-enforced structured output Â· native tool calling (agent) Â· thinking control Â· versioned prompt templates
+Python · Ollama 0.34 (local LLM: qwen3.8:27b default, gpt-oss:20b fast alternative, qwen2.5:14b, llama3) · schema-enforced structured output · native tool calling (agent) · thinking control · versioned prompt templates
 
 ## My Role
-Sole designer and developer. JADE is an independent project, not coursework; its five cases are original scenarios written for it. Architecture documented in my Engineering Journal (Decisions 0003â€“0009, 0040â€“0044, 0072).
+Sole designer and developer. JADE is an independent project, not coursework; its five cases are original scenarios written for it. Architecture documented in my Engineering Journal (Decisions 0003–0009, 0040–0044, 0072).
 
 ## Architecture
 ```
 Scenario + Student Answer + Template (+ the case's marking scheme)
-        â†“  prompt assembly (input guard: too-short answers never reach the model)
+        ↓  prompt assembly (input guard: too-short answers never reach the model)
      Local LLM (Ollama; provider-agnostic via factory; judge/student roles; thinking control)
-        â†“  schema-enforced verdict (Ollama format) with JSON validation + rescue as fallback
+        ↓  schema-enforced verdict (Ollama format) with JSON validation + rescue as fallback
  status-tagged result (graded / guard_rejected / provider_error)
-        â†“
- run file â†’ scoreboard (scorers) â†’ markdown report (report)
+        ↓
+ run file → evaluation history (SQLite) → scoreboard, KPIs, markdown report
 
-Student agent (jai/agent): model drafts â†’ submit_answer tool â†’ the pipeline above â†’ verdict â†’ revise â†’ repeat
+HTTP API (jai/api): /evaluate → the pipeline above → result; /history, /kpis read the history
+
+Student agent (jai/agent): model drafts → submit_answer tool → the pipeline above → verdict → revise → repeat
 ```
 
 ## Usage
 Full guide with install steps, adding your own cases and marking schemes, provider switching, and troubleshooting: **[docs/USAGE.md](docs/USAGE.md)**.
 ```bash
 cd code && pip install -r requirements.txt && cp .env.example .env
-python -m unittest discover -s tests   # 22 tests, fake provider, no model needed
+python -m unittest discover -s tests   # 35 tests, fake provider, no model needed
 
 # grade one answer against a stored case (exit 0 pass, 1 fail, 2 error)
 python cli.py evaluate --case REQ_001 --answer myanswer.txt
@@ -45,6 +47,12 @@ python cli.py evaluate --case REQ_001 --answer myanswer.txt
 JAI_MODE=eval JAI_EVAL_ANSWERS=answers.json python main.py
 python -m jai.eval.scorers          # scoreboard for the newest run
 python -m jai.eval.report           # markdown report into outputs/
+
+# v2: history, KPIs, API
+python cli.py evaluate --case REQ_001 --answer myanswer.txt --save --student me
+python cli.py history                # recent gradings
+python cli.py kpis                   # KPIs from the history
+python -m jai.api.server             # local HTTP API on 127.0.0.1:8765
 ```
 
 ## Real example
@@ -169,6 +177,21 @@ JADE's default judge (qwen3.8:27b, 17 GB) is bigger than my RTX 5080's 16 GB, so
 
 Full train split (25,000 reviews), full test split (25,000), 3 epochs, sequence length 256. Test loss rising after epoch 1 while accuracy still improves shows mild overfitting by epoch 3, which the model card states. The card records results, not training time.
 
+## JADE v2.0 (2026-10-12)
+v2.0 adds what turns a grading tool into something an organization can run and measure. Every item was built and tested the same day, and every live test was registered before grading.
+
+| Addition | What it does | Evidence |
+|---|---|---|
+| Evaluation history | Every saved grading goes into a local SQLite store (`runs/history.db`); 127 past gradings imported from earlier runs | `python cli.py history`, 13 new tests (history, KPIs, templates, API) |
+| KPIs | Turnaround, judge override rate, learning gain per learner and case, reliability, and instructor agreement when instructor verdicts are supplied | `python cli.py kpis [--labels instructor.json]` |
+| HTTP API | Local, standard-library web service: `/health`, `/cases` (never the marking scheme), `/evaluate`, `/history`, `/kpis`; loopback only by default; one grading at a time | `python -m jai.api.server`, API tests |
+| Retention control | Purge old gradings for a data-retention policy | `python cli.py history --purge-before YYYY-MM-DD` |
+| Bias check and fairness fix | Same content in polished and rough English: verdicts never changed in 16 gradings; a residual score gap of up to 2 points on 1 of 4 strong answers remains after the v2 fairness rule | [docs/bias_check](docs/bias_check/README.md) |
+| v2 templates | v1 plus one language-fairness rule; v1 frozen; Test A and B re-graded on v2: 10 of 10 predictions matched | [regression](docs/bias_check/regression/v2_regression.json) |
+| Cost, governance, adoption | Measured GPU energy (about 1.6 Wh and 80 s per grading), data and decision controls, release gates, a pilot plan with KPI targets | [COST](docs/COST.md), [GOVERNANCE](docs/GOVERNANCE.md), [ADOPTION_PLAN](docs/ADOPTION_PLAN.md) |
+
+35 unit tests run without a model. Results now record which template graded them.
+
 ## Key Decisions
 - Evaluation logic lives in templates, not prompts scattered per use (0003).
 - Templates are versioned, never edited in place, for reproducibility (0004).
@@ -177,6 +200,7 @@ Full train split (25,000 reviews), full test split (25,000), 3 epochs, sequence 
 - Never let the judge see an empty paper: answers under 20 characters are refused before the model runs (2026-09-03).
 - The verdict shape is enforced by the runtime through a JSON schema, not requested in the prompt and repaired afterwards (2026-09-10).
 - No model grades itself unchecked: judges are chosen by cross-grading and control answers (2026-09-10).
+- Fairness is tested, not assumed: a bias check (same content, polished and rough English) is a release gate, and its first finding led to versioned v2 templates (2026-10-12).
 - The pass line is a rule, so it is applied as code: a judge "pass" with more required points missing than `min_points` allows becomes a fail, and the judge's own verdict is kept beside it (2026-10-11).
 
 ## Challenges
@@ -194,19 +218,21 @@ Full train split (25,000 reviews), full test split (25,000), 3 epochs, sequence 
 JADE changed how I see AI: before, a technology that generates responses; after, **one module inside a larger software architecture**. The model was never the problem, the architecture was. Reliable AI systems need validation, structured outputs, versioning, documentation, and testing around the model, and those surrounding systems often contribute more to quality than the model itself. Prompt engineering matured from "writing better instructions" into **software specification**: a formal contract between the system and the model. And a bigger model is not automatically a better judge. It has to be calibrated on answers whose grade you already know.
 
 ## Timeline
-Development began in **December 2025** with the Linux environment (Phase 1). Ollama and the first model followed in February 2026 (Phase 3), then the provider architecture and eval templates (Phases 4 to 8; see `docs/Project Journal - J_AI.docx` with build screenshots). The code was imported to git on 2026-09-02, which is why commit dates are later than the work. Minimum Useful Version on 2026-09-05, student agent and model bake-off on 2026-09-10, v1.0 hardening on 2026-10-11, final tests and **v1.0 release on 2026-10-12**. The journal covers all of it in 19 phases. Throughout that time the project was named J_AI; it became **JADE** on 2026-10-12 with v1.0.1.
+Development began in **December 2025** with the Linux environment (Phase 1). Ollama and the first model followed in February 2026 (Phase 3), then the provider architecture and eval templates (Phases 4 to 8; see `docs/Project Journal - J_AI.docx` with build screenshots). The code was imported to git on 2026-09-02, which is why commit dates are later than the work. Minimum Useful Version on 2026-09-05, student agent and model bake-off on 2026-09-10, v1.0 hardening on 2026-10-11, final tests and **v1.0 release on 2026-10-12**, and **v2.0** (history, KPIs, API, bias check, governance) the same day. The journal covers all of it in 19 phases. Throughout that time the project was named J_AI; it became **JADE** on 2026-10-12 with v1.0.1.
 
 ## Current Status
-**v1.0 released** (2026-10-12). Every item in the [SPEC.md](SPEC.md) v1.0 checklist is done, confirmed by pre-registered final tests. The planned practice loop (re-answering two cases and regrading) is closed: the two pre-registered final tests stand in for it.
+**v2.0 released** (2026-10-12), on top of v1.0 the same day. Every item in the [SPEC.md](SPEC.md) checklists is done, confirmed by pre-registered tests. The planned practice loop (re-answering two cases and regrading) is closed: the two pre-registered final tests stand in for it.
 
-What runs, all local in WSL2: input guard, CLI, batch evaluation, scoreboard, markdown reports, schema-enforced verdicts with a marking-scheme check, judge and student roles, thinking control, and the student agent. qwen3.8:27b is the default judge. 22 unit tests run without a model.
+What runs, all local in WSL2: input guard, CLI, batch evaluation, scoreboard, markdown reports, schema-enforced verdicts with a marking-scheme check, judge and student roles, thinking control, the student agent, evaluation history, KPIs, a local HTTP API and retention control. qwen3.8:27b is the default judge, with v2 templates. 35 unit tests run without a model.
 
-## Next Improvements (v2)
-Evaluation history across runs Â· more subjects and templates Â· document analysis (see the journal's Future Roadmap).
+## Next Improvements
+More subjects and templates · a web dashboard over the history and KPIs · document analysis · instructor labelling workflow for the agreement KPI.
 
 ## Known Limitations
-- **Speed.** qwen3.8:27b is larger than a 16GB card, so one grading takes 50 to 140 seconds (measured: 82 s mixed, 365 s CPU only). gpt-oss:20b fits fully on the GPU and grades in about a second, with less detailed findings and generous scores.
+- **Speed.** qwen3.8:27b is larger than a 16GB card, so one grading takes 60 to 120 seconds (measured: about 80 s and 1.6 Wh of GPU energy mixed, 365 s CPU only). gpt-oss:20b fits fully on the GPU and grades in about a second, with less detailed findings and generous scores.
 - **Missing-point counting is literal.** The marking-scheme check counts everything the judge lists as missing, including the template's own checklist questions, so it errs on the strict side.
 - **One domain, five cases.** The case set is five original network-design scenarios; the engine is general, the content is not yet.
-- **No history or dashboard.** Each run is a file; comparing runs over time is manual.
+- **No dashboard.** History and KPIs are on the command line and the API; there is no web interface yet.
+- **Residual score gap for rough English.** Verdicts were language-neutral in testing, but rough English lost up to 2 points on 1 of 4 strong answers ([bias check](docs/bias_check/README.md)). Do not rank learners by score across language backgrounds.
+- **Instructor agreement needs labels.** The KPI is computed only when instructor verdicts are supplied.
 - **Scores run generous on strong answers.** Verdicts are the trustworthy signal; a score of 8 against 9 means little.

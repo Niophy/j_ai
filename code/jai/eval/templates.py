@@ -113,3 +113,19 @@ Return ONLY valid JSON:
 }}
 """
 }
+
+# v2 templates (2026-10-12): v1 plus one language-fairness rule. The v2.0 bias
+# check graded the same content in polished and rough English: verdicts never
+# changed, but rough English lost 1 to 2 points on strong answers and drew
+# findings the polished version did not. v1 stays frozen (templates are
+# versioned, never edited in place); the cases point at v2.
+FAIRNESS_RULE = (
+    "Language fairness: grade the engineering content only. Do not lower the score, and do not list "
+    "a finding, because of grammar, spelling, word choice or non-native phrasing. A point counts as "
+    "covered when its meaning is clear, however it is worded. Judge vagueness only by what is "
+    "technically missing, not by how it is phrased.\n\n"
+)
+
+for _name in [n for n in TEMPLATES if n.endswith("_v1")]:
+    TEMPLATES[_name[:-3] + "_v2"] = TEMPLATES[_name].replace(
+        "Return ONLY valid JSON", FAIRNESS_RULE + "Return ONLY valid JSON", 1)

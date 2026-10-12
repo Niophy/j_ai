@@ -5,7 +5,7 @@
     {
       "id": "REQ_001",
       "type": "requirements_analysis",
-      "prompt_template": "requirements_analysis_v1",
+      "prompt_template": "requirements_analysis_v2",
       "input": {
         "scenario": "A small clinic has 1 main site and 1 remote branch. They need reliable internet access, secure patient record access, and minimal downtime. Budget is limited. They expect growth from 30 to 80 staff within 2 years."
       },
@@ -28,7 +28,7 @@
     {
       "id": "REQ_002",
       "type": "requirements_analysis",
-      "prompt_template": "requirements_analysis_v1",
+      "prompt_template": "requirements_analysis_v2",
       "input": {
         "scenario": "A university building has 6 labs and 12 classrooms. Each lab has 35 PCs. WiFi must cover classrooms. Some devices are IoT sensors. The network must support online exams without drops. IT staff is small."
       },
@@ -47,7 +47,7 @@
     {
       "id": "LOG_001",
       "type": "logical_design",
-      "prompt_template": "logical_design_v1",
+      "prompt_template": "logical_design_v2",
       "input": {
         "scenario": "A mid size company has 3 departments: HR, Finance, Engineering. Engineering has heavy internal traffic and needs lab isolation. Finance needs strict access control. Provide a logical design approach."
       },
@@ -66,7 +66,7 @@
     {
       "id": "PROT_001",
       "type": "protocol_selection",
-      "prompt_template": "protocol_selection_v1",
+      "prompt_template": "protocol_selection_v2",
       "input": {
         "question": "Choose a routing protocol for a campus network with multiple buildings and future growth. Justify your choice briefly."
       },
@@ -85,7 +85,7 @@
     {
       "id": "SEC_001",
       "type": "security_strategy",
-      "prompt_template": "security_strategy_v1",
+      "prompt_template": "security_strategy_v2",
       "input": {
         "scenario": "A company allows remote work. They host internal apps and a public website. Propose security strategies for internal and perimeter security."
       },

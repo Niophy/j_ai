@@ -1,0 +1,62 @@
+{
+  "a:REQ_001": {
+    "score": 9,
+    "verdict": "pass",
+    "template": "requirements_analysis_v2",
+    "seconds": 71.1
+  },
+  "a:REQ_002": {
+    "score": 3,
+    "verdict": "fail",
+    "template": "requirements_analysis_v2",
+    "seconds": 94.9
+  },
+  "a:LOG_001": {
+    "score": 8,
+    "verdict": "pass",
+    "template": "logical_design_v2",
+    "seconds": 99.3
+  },
+  "a:PROT_001": {
+    "score": 9,
+    "verdict": "pass",
+    "template": "protocol_selection_v2",
+    "seconds": 68.4
+  },
+  "a:SEC_001": {
+    "score": 2,
+    "verdict": "fail",
+    "template": "security_strategy_v2",
+    "seconds": 89.0
+  },
+  "b:REQ_001": {
+    "score": 3,
+    "verdict": "fail",
+    "template": "requirements_analysis_v2",
+    "seconds": 97.0
+  },
+  "b:REQ_002": {
+    "score": 1,
+    "verdict": "fail",
+    "template": "requirements_analysis_v2",
+    "seconds": 118.5
+  },
+  "b:LOG_001": {
+    "score": 1,
+    "verdict": "fail",
+    "template": "logical_design_v2",
+    "seconds": 92.6
+  },
+  "b:PROT_001": {
+    "score": 2,
+    "verdict": "fail",
+    "template": "protocol_selection_v2",
+    "seconds": 77.0
+  },
+  "b:SEC_001": {
+    "score": 1,
+    "verdict": "fail",
+    "template": "security_strategy_v2",
+    "seconds": 69.4
+  }
+}

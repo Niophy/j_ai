@@ -262,6 +262,21 @@ def save_record(record):
     path = RUNS_DIR / f"agent_{record['case_id']}_{time.time_ns()}.json"
     with open(path, "w", encoding="utf-8") as f:
         json.dump(record, f, indent=2, ensure_ascii=False)
+    # v2: each graded submission goes into the evaluation history too, under one
+    # student name per agent model, so its learning gain shows in the KPIs.
+    try:
+        from jai import history
+        rows = [{
+            "timestamp": record["timestamp"], "case_id": record["case_id"], "type": record["type"],
+            "status": a["status"], "latency_seconds": a["latency_seconds"], "answer": a["answer"],
+            "result": {"score": a["score"], "verdict": a["verdict"],
+                       "rubric_check": {"judge_verdict": a["judge_verdict"],
+                                        "overridden": a["judge_verdict"] != a["verdict"]}},
+        } for a in record["attempts"]]
+        history.record(rows, run_id=path.stem, source="agent",
+                       student=f"agent:{record['student']}", provider=record["judge"])
+    except Exception as exc:
+        print(f"WARNING: history not recorded ({exc})", file=sys.stderr)
     return path
 
 
